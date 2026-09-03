@@ -18,6 +18,7 @@ import { handleCropRecommend } from './routes/crops.js';
 import { handleFarmerMatch } from './routes/farmers.js';
 import { handleLaborNearby, handleLaborRequest } from './routes/labor.js';
 import { handleMarketplace } from './routes/marketplace.js';
+import { handleServices } from './routes/services.js';
 
 // ─── Router ───────────────────────────────────────────────────────────────────
 
@@ -55,6 +56,9 @@ router.post('/api/labor/request', handleLaborRequest);
 
 // Marketplace
 router.get('/api/marketplace', handleMarketplace);
+
+// Agricultural Services
+router.get('/api/services', handleServices);
 
 // 404 fallback
 router.all('*', () =>

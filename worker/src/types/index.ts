@@ -10,11 +10,8 @@ export interface Env {
   GEMINI_API_KEY: string;
   /** Allowed CORS origin, set in wrangler.toml [vars] */
   ALLOWED_ORIGIN: string;
-  /**
-   * D1 database binding (optional — uncomment in wrangler.toml to enable).
-   * Stub kept here so TypeScript doesn't complain when you wire it up.
-   */
-  // DB: D1Database;
+  /** Cloudflare D1 database binding */
+  DB?: D1Database;
 }
 
 // ─── Generic API Response Shape ──────────────────────────────────────────────
@@ -158,7 +155,7 @@ export interface FarmerProfile {
   land_size_acres: number;
   phone_masked: string; // e.g. "+91-XXXX-XX1234"
   bio: string;
-  _demo: true;
+  _demo?: boolean;
 }
 
 export interface FarmerMatchRequest {
@@ -181,7 +178,8 @@ export interface FarmerMatch {
 export interface FarmerMatchResponse {
   matches: FarmerMatch[];
   totalCandidates: number;
-  _demo: true;
+  _demo?: boolean;
+  source?: string;
 }
 
 // ─── Labor ────────────────────────────────────────────────────────────────────
@@ -198,7 +196,7 @@ export interface LaborWorker {
   experience_years: number;
   phone_masked: string;
   languages: string[];
-  _demo: true;
+  _demo?: boolean;
 }
 
 export interface LaborNearbyRequest {
@@ -212,7 +210,8 @@ export interface LaborNearbyResponse {
   workers: Array<LaborWorker & { distanceKm: number }>;
   totalFound: number;
   radiusKm: number;
-  _demo: true;
+  _demo?: boolean;
+  source?: string;
 }
 
 export interface LaborRequest {
@@ -225,6 +224,8 @@ export interface LaborRequest {
   startDate: string; // ISO 8601
   durationDays: number;
   description?: string;
+  notes?: string;
+  workerId?: string;
 }
 
 export interface LaborRequestResponse {
@@ -232,6 +233,8 @@ export interface LaborRequestResponse {
   status: 'pending';
   message: string;
   submittedAt: string;
+  _demo?: boolean;
+  source?: string;
 }
 
 // ─── Marketplace ──────────────────────────────────────────────────────────────
@@ -257,7 +260,7 @@ export interface MarketplaceListing {
   available: boolean;
   postedAt: string; // ISO 8601
   tags: string[];
-  _demo: true;
+  _demo?: boolean;
 }
 
 export interface MarketplaceFilters {
@@ -272,5 +275,30 @@ export interface MarketplaceResponse {
   listings: MarketplaceListing[];
   total: number;
   filters: MarketplaceFilters;
-  _demo: true;
+  _demo?: boolean;
+  source?: string;
+}
+
+// ─── Agricultural Services ───────────────────────────────────────────────────
+
+export interface AgriService {
+  id: string;
+  name: string;
+  type: 'drone' | 'machinery' | 'storage' | 'lab' | 'extension';
+  location: string;
+  distance_km: number;
+  contact: string;
+  pricing: string;
+  description: string;
+  rating: number;
+  verified: boolean;
+  _demo?: boolean;
+  source?: string;
+}
+
+export interface ServicesResponse {
+  services: AgriService[];
+  total: number;
+  _demo?: boolean;
+  source?: string;
 }

@@ -1,7 +1,8 @@
 /**
  * GET /api/marketplace?category=seeds&location=Tamil Nadu&minPrice=100&maxPrice=5000&available=true
  *
- * Returns demo marketplace listings filtered by optional query params.
+ * Returns marketplace listings from Cloudflare D1 or calibrated demo store,
+ * filtered by optional query parameters.
  */
 
 import type { IRequest } from 'itty-router';
@@ -10,6 +11,7 @@ import type {
   Env,
   MarketplaceCategory,
   MarketplaceFilters,
+  MarketplaceListing,
   MarketplaceResponse,
   ApiResponse,
 } from '../types/index.js';
@@ -23,9 +25,56 @@ const VALID_CATEGORIES = new Set<MarketplaceCategory>([
   'services',
 ]);
 
+// ─── D1 Data Loader with Demo Fallback ────────────────────────────────────────
+
+async function loadMarketplaceListings(
+  env: Env
+): Promise<{ listings: MarketplaceListing[]; isDemo: boolean; source: string }> {
+  if (env.DB) {
+    try {
+      const { results } = await env.DB.prepare(
+        'SELECT * FROM marketplace_listings WHERE available = 1 LIMIT 100'
+      ).all();
+
+      if (results && results.length > 0) {
+        const parsed: MarketplaceListing[] = results.map((r: Record<string, unknown>) => ({
+          id: String(r.id),
+          title: String(r.title),
+          description: String(r.description),
+          category: String(r.category) as MarketplaceCategory,
+          price_inr: Number(r.price_inr),
+          unit: String(r.unit),
+          location: String(r.location),
+          sellerName: String(r.seller_name),
+          sellerPhone_masked: String(r.seller_phone_masked),
+          available: Boolean(r.available),
+          postedAt: String(r.posted_at || new Date().toISOString()),
+          tags: typeof r.tags === 'string' ? JSON.parse(r.tags) : (r.tags as string[]) || [],
+          _demo: false,
+        }));
+        return {
+          listings: parsed,
+          isDemo: false,
+          source: 'Cloudflare D1 Production Database',
+        };
+      }
+    } catch (err) {
+      console.warn('[Marketplace] D1 query failed, using demo fallback:', err);
+    }
+  }
+
+  return {
+    listings: DEMO_MARKETPLACE_LISTINGS,
+    isDemo: true,
+    source: 'Bhoomi Mithra Demo APMC & Input Registry',
+  };
+}
+
+// ─── GET /api/marketplace ─────────────────────────────────────────────────────
+
 export async function handleMarketplace(
   request: IRequest,
-  _env: Env
+  env: Env
 ): Promise<Response> {
   const url = new URL(request.url);
 
@@ -69,7 +118,9 @@ export async function handleMarketplace(
     ...(availableStr != null ? { available: availableStr === 'true' } : {}),
   };
 
-  const listings = DEMO_MARKETPLACE_LISTINGS.filter((listing) => {
+  const { listings: allListings, isDemo, source } = await loadMarketplaceListings(env);
+
+  const listings = allListings.filter((listing) => {
     if (filters.category && listing.category !== filters.category) return false;
     if (
       filters.location &&
@@ -89,7 +140,8 @@ export async function handleMarketplace(
       listings,
       total: listings.length,
       filters,
-      _demo: true,
+      _demo: isDemo,
+      source,
     },
   };
   return jsonResponse(response);

@@ -7,12 +7,10 @@ compatibility_flags = ["nodejs_compat"]
 # Run: wrangler dev
 # Secrets are loaded from .dev.vars (see .dev.vars.example)
 
-# ─── D1 Database (optional — wire up for persistent labor requests) ──────────
-# Uncomment when ready to enable persistent storage:
-# [[d1_databases]]
-# binding = "DB"
-# database_name = "farmconnect"
-# database_id = "YOUR_D1_DATABASE_ID_HERE"
+[[d1_databases]]
+binding = "DB"
+database_name = "bhoomi-mithra-db"
+database_id = "95e6dfb4-9257-485c-b33d-b760bd466eb7"
 
 # ─── Production secrets ──────────────────────────────────────────────────────
 # Set via: wrangler secret put GEMINI_API_KEY

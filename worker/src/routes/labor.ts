@@ -2,8 +2,8 @@
  * GET  /api/labor/nearby?lat=&lng=&radius=5&skill=harvesting
  * POST /api/labor/request
  *
- * GET  filters demo workers by Haversine distance.
- * POST saves a labor request (in-memory for hackathon; D1 hook commented below).
+ * GET  filters workers by Haversine distance from D1 or calibrated demo store.
+ * POST persists labor requests to Cloudflare D1 with fallback to in-memory store.
  */
 
 import type { IRequest } from 'itty-router';
@@ -14,17 +14,65 @@ import type {
   LaborRequest,
   LaborRequestResponse,
   ApiResponse,
+  LaborWorker,
 } from '../types/index.js';
 
-// ─── In-memory store (replace with D1 when ready) ────────────────────────────
-// To use D1 instead, add env.DB.prepare(...) calls below where noted.
+// ─── In-memory fallback store ────────────────────────────────────────────────
 const LABOR_REQUESTS: Array<LaborRequest & { id: string; submittedAt: string }> = [];
+
+// ─── D1 Data Loader with Demo Fallback ────────────────────────────────────────
+
+async function loadLaborWorkers(
+  env: Env
+): Promise<{ workers: LaborWorker[]; isDemo: boolean; source: string }> {
+  if (env.DB) {
+    try {
+      const { results } = await env.DB.prepare(
+        'SELECT * FROM labor_workers WHERE status = ? LIMIT 50'
+      )
+        .bind('available')
+        .all();
+
+      if (results && results.length > 0) {
+        const parsed: LaborWorker[] = results.map((r: Record<string, unknown>) => ({
+          id: String(r.id),
+          name: String(r.name),
+          location: String(r.location),
+          latitude: Number(r.latitude),
+          longitude: Number(r.longitude),
+          skills: typeof r.skills === 'string' ? JSON.parse(r.skills) : (r.skills as string[]) || [],
+          dailyRate_inr: Number(r.daily_rate_inr || 600),
+          availability: 'available',
+          experience_years: Number(r.jobs_completed ? Math.floor(Number(r.jobs_completed) / 10) : 5),
+          phone_masked: String(r.phone_masked),
+          languages: ['Kannada', 'Tamil', 'English'],
+          _demo: false,
+        }));
+        return {
+          workers: parsed,
+          isDemo: false,
+          source: 'Cloudflare D1 Production Database',
+        };
+      }
+    } catch (err) {
+      console.warn('[Labor] D1 query failed, using calibrated demo registry:', err);
+    }
+  }
+
+  return {
+    workers: DEMO_LABOR_WORKERS,
+    isDemo: true,
+    source: 'Bhoomi Mithra Demo Labor Crew Registry',
+  };
+}
 
 // ─── Haversine distance (km) ──────────────────────────────────────────────────
 
 function haversineKm(
-  lat1: number, lng1: number,
-  lat2: number, lng2: number
+  lat1: number,
+  lng1: number,
+  lat2: number,
+  lng2: number
 ): number {
   const R = 6371;
   const dLat = ((lat2 - lat1) * Math.PI) / 180;
@@ -41,7 +89,7 @@ function haversineKm(
 
 export async function handleLaborNearby(
   request: IRequest,
-  _env: Env
+  env: Env
 ): Promise<Response> {
   const url = new URL(request.url);
 
@@ -77,7 +125,9 @@ export async function handleLaborNearby(
     );
   }
 
-  const workers = DEMO_LABOR_WORKERS
+  const { workers: loadedWorkers, isDemo, source } = await loadLaborWorkers(env);
+
+  const workers = loadedWorkers
     .map((w) => ({
       ...w,
       distanceKm: haversineKm(lat, lng, w.latitude, w.longitude),
@@ -97,7 +147,8 @@ export async function handleLaborNearby(
       workers,
       totalFound: workers.length,
       radiusKm: radius,
-      _demo: true,
+      _demo: isDemo,
+      source,
     },
   };
   return jsonResponse(response);
@@ -107,7 +158,7 @@ export async function handleLaborNearby(
 
 export async function handleLaborRequest(
   request: IRequest,
-  _env: Env
+  env: Env
 ): Promise<Response> {
   let body: unknown;
   try {
@@ -160,19 +211,47 @@ export async function handleLaborRequest(
     );
   }
 
-  // ── Save to in-memory store ───────────────────────────────────────────────
-  // D1 UPGRADE HOOK: replace the lines below with:
-  //   await env.DB.prepare(
-  //     'INSERT INTO labor_requests (id, farmer_name, farmer_phone, ...) VALUES (?, ?, ?, ...)'
-  //   ).bind(requestId, ...).run();
   const requestId = `LR-${Date.now()}-${Math.random().toString(36).slice(2, 7).toUpperCase()}`;
   const submittedAt = new Date().toISOString();
 
-  LABOR_REQUESTS.push({
-    ...(req as LaborRequest),
-    id: requestId,
-    submittedAt,
-  });
+  let storageSource = 'In-Memory Store';
+
+  // Persist to Cloudflare D1 if configured
+  if (env.DB) {
+    try {
+      await env.DB.prepare(
+        'INSERT INTO labor_requests (id, farmer_name, farmer_phone, location, skill, worker_id, start_date, duration_days, status, notes, submitted_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+      )
+        .bind(
+          requestId,
+          req.farmerName!.trim(),
+          req.farmerPhone!.trim(),
+          req.location!.trim(),
+          req.skill!.trim(),
+          req.workerId ?? null,
+          req.startDate!.trim(),
+          req.durationDays,
+          'pending',
+          req.notes?.trim() ?? req.description?.trim() ?? null,
+          submittedAt
+        )
+        .run();
+      storageSource = 'Cloudflare D1 Production Database';
+    } catch (err) {
+      console.warn('[Labor] Failed to insert request into D1, falling back to memory store:', err);
+      LABOR_REQUESTS.push({
+        ...(req as LaborRequest),
+        id: requestId,
+        submittedAt,
+      });
+    }
+  } else {
+    LABOR_REQUESTS.push({
+      ...(req as LaborRequest),
+      id: requestId,
+      submittedAt,
+    });
+  }
 
   const responseData: LaborRequestResponse = {
     requestId,
@@ -180,6 +259,8 @@ export async function handleLaborRequest(
     message:
       'Your labor request has been received. Available workers in your area will be notified.',
     submittedAt,
+    _demo: false,
+    source: storageSource,
   };
 
   const response: ApiResponse<LaborRequestResponse> = {

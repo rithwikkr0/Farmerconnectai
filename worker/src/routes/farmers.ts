@@ -2,10 +2,12 @@
  * POST /api/farmers/match
  *
  * Two-stage matching:
- * 1. Deterministic filter — crop/problem keyword overlap + optional distance
- * 2. Gemini ranking — scores and explains the filtered candidates
+ * 1. Data Layer — Queries Cloudflare D1 database if active records exist,
+ *    falling back gracefully to calibrated demo records.
+ * 2. Deterministic filter — crop/problem keyword overlap + optional distance
+ * 3. Gemini ranking — scores and explains the filtered candidates
  *
- * Gemini is NOT used to fabricate farmer data — only to rank real demo records.
+ * Gemini is NOT used to fabricate farmer data — only to rank real/demo records.
  */
 
 import type { IRequest } from 'itty-router';
@@ -20,11 +22,59 @@ import type {
   FarmerProfile,
 } from '../types/index.js';
 
+// ─── D1 Data Layer with Demo Fallback ─────────────────────────────────────────
+
+async function loadFarmers(
+  env: Env
+): Promise<{ farmers: FarmerProfile[]; isDemo: boolean; source: string }> {
+  if (env.DB) {
+    try {
+      const { results } = await env.DB.prepare(
+        'SELECT * FROM farmers WHERE status = ? LIMIT 50'
+      )
+        .bind('active')
+        .all();
+
+      if (results && results.length > 0) {
+        const parsed: FarmerProfile[] = results.map((r: Record<string, unknown>) => ({
+          id: String(r.id),
+          name: String(r.name),
+          location: String(r.location),
+          latitude: Number(r.latitude),
+          longitude: Number(r.longitude),
+          crops: typeof r.crops === 'string' ? JSON.parse(r.crops) : (r.crops as string[]) || [],
+          problems: typeof r.problems === 'string' ? JSON.parse(r.problems) : (r.problems as string[]) || [],
+          experience_years: Number(r.experience_years || 0),
+          land_size_acres: Number(r.land_size_acres || 1),
+          phone_masked: String(r.phone_masked),
+          bio: String(r.bio),
+          _demo: false,
+        }));
+        return {
+          farmers: parsed,
+          isDemo: false,
+          source: 'Cloudflare D1 Production Database',
+        };
+      }
+    } catch (err) {
+      console.warn('[Farmers] D1 query failed, using demo fallback:', err);
+    }
+  }
+
+  return {
+    farmers: DEMO_FARMERS,
+    isDemo: true,
+    source: 'Bhoomi Mithra Demo Farmer Registry',
+  };
+}
+
 // ─── Haversine distance (km) ──────────────────────────────────────────────────
 
 function haversineKm(
-  lat1: number, lng1: number,
-  lat2: number, lng2: number
+  lat1: number,
+  lng1: number,
+  lat2: number,
+  lng2: number
 ): number {
   const R = 6371;
   const dLat = ((lat2 - lat1) * Math.PI) / 180;
@@ -113,8 +163,11 @@ export async function handleFarmerMatch(
 
   const maxResults = Math.min(Math.max(req.maxResults ?? 5, 1), 10);
 
+  // Load from D1 or calibrated demo registry
+  const { farmers, isDemo, source } = await loadFarmers(env);
+
   // ── Step 1: Deterministic scoring ─────────────────────────────────────────
-  const scored = DEMO_FARMERS
+  const scored = farmers
     .map((farmer) => ({
       farmer,
       deterministicScore: determinisitcScore(farmer, req as FarmerMatchRequest),
@@ -129,7 +182,7 @@ export async function handleFarmerMatch(
 
   if (scored.length === 0) {
     // No keyword matches — return top farmers by experience as fallback
-    const fallback: FarmerMatch[] = DEMO_FARMERS.slice(0, 3).map((farmer) => ({
+    const fallback: FarmerMatch[] = farmers.slice(0, 3).map((farmer) => ({
       farmer,
       matchScore: 30,
       matchReasons: ['Experienced farmer available for general consultation'],
@@ -140,8 +193,9 @@ export async function handleFarmerMatch(
       success: true,
       data: {
         matches: fallback,
-        totalCandidates: DEMO_FARMERS.length,
-        _demo: true,
+        totalCandidates: farmers.length,
+        _demo: isDemo,
+        source,
       },
     };
     return jsonResponse(resp);
@@ -157,7 +211,7 @@ export async function handleFarmerMatch(
       req as FarmerMatchRequest
     );
   } catch (err) {
-    console.error('[/api/farmers/match] Gemini ranking error:', err);
+    console.warn('[/api/farmers/match] Gemini ranking unavailable, using deterministic ranking:', err);
     // Graceful fallback: use deterministic scores
     geminiRankings = scored.map((s) => ({
       id: s.farmer.id,
@@ -201,8 +255,9 @@ export async function handleFarmerMatch(
     success: true,
     data: {
       matches,
-      totalCandidates: DEMO_FARMERS.length,
-      _demo: true,
+      totalCandidates: farmers.length,
+      _demo: isDemo,
+      source,
     },
   };
   return jsonResponse(response);

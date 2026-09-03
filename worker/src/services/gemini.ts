@@ -24,9 +24,9 @@ import type {
   CropRecommendationResponse,
 } from '../types/index.js';
 
-// ─── Single Primary Model ───────────────────────────────────────────────────
+// ─── Single Primary Model (Lightweight, verified working) ───────────────────
 
-const PRIMARY_MODEL = 'gemini-3.5-flash';
+const PRIMARY_MODEL = 'gemini-3.5-flash-lite';
 
 // ─── In-Memory Response Cache (5-Minute TTL) ────────────────────────────────
 
@@ -81,11 +81,11 @@ const TASK_SAFETY_NOTES: Record<AITask, string> = {
 function buildAIPrompt(task: AITask, context: Record<string, unknown>): string {
   // Strip unnecessary fat; only keep concise agronomic parameters
   const compactContext = {
-    location: context.location || context.district || 'Mandya, Karnataka',
+    location: context.location || context.district || 'Anekal, Bengaluru Urban, Karnataka',
     soil: context.soilType || context.soil || 'Red sandy loam',
     water: context.waterAvailability || 'moderate',
-    landAcres: context.landSizeAcres || context.landSize || 2.5,
-    crop: context.primaryCrop || context.crop || 'Finger Millet (Ragi)',
+    landAcres: context.landSizeAcres || context.landSize || 3.5,
+    crop: context.primaryCrop || context.crop || 'Tomato',
     season: context.season || 'Kharif',
     goal: context.goal || 'profit',
     notes: context.additionalNotes || context.problem || context.question || undefined,
@@ -278,21 +278,8 @@ export class GeminiService {
       setCached(cacheKey, result);
       return result;
     } catch (err: any) {
-      console.warn('[GeminiService] AI error, providing safety fallback:', err?.message);
-      return {
-        task,
-        recommendation: err?.message?.includes('busy')
-          ? 'AI is temporarily busy. Please try again in a moment.'
-          : 'Consult your local Krishi Vigyan Kendra (KVK) extension officer for tailored field guidance.',
-        sections: [
-          {
-            title: 'Field Recommendation',
-            content: 'Verify soil moisture and drainage channels before major field operations.',
-            priority: 'medium',
-          },
-        ],
-        safetyNote: TASK_SAFETY_NOTES[task],
-      };
+      console.error('[GeminiService] AI error:', err?.message);
+      throw err;
     }
   }
 
@@ -354,17 +341,8 @@ Respond ONLY with valid JSON. No markdown.`;
       setCached(cacheKey, result);
       return result;
     } catch (err: any) {
-      console.warn('[GeminiService] Weather advice error:', err?.message);
-      return {
-        location: weather.location,
-        weather,
-        advice: `Current conditions at ${weather.location} report ${weather.current.temperature_c}°C and ${weather.current.condition}. Ensure standard field drainage and monitor soil moisture.`,
-        risks: ['Localized moisture stress', 'Surface water stagnation after rainfall'],
-        preventiveActions: [
-          'Clear field drainage furrows to avoid localized root hypoxia',
-          'Defer chemical spraying if high winds or sudden rain occur',
-        ],
-      };
+      console.error('[GeminiService] Weather advice error:', err?.message);
+      throw err;
     }
   }
 
@@ -474,33 +452,8 @@ Respond ONLY with valid JSON. No markdown.`;
       setCached(cacheKey, result);
       return result;
     } catch (err: any) {
-      console.warn('[GeminiService] Crop recommendations fallback invoked:', err?.message);
-      return {
-        location: request.location,
-        season: request.season,
-        recommendations: [
-          {
-            cropName: request.soil?.toLowerCase().includes('black')
-              ? 'Soybean / Cotton'
-              : 'Finger Millet (Ragi)',
-            suitabilityScore: 88,
-            suitabilityLabel: 'excellent',
-            reasons: ['Adapted to regional soil profile', 'Resilient moisture consumption'],
-            waterRequirement: 'moderate',
-            majorRisks: ['Early season dry spell', 'Foliar leaf spot during humidity'],
-            suggestedActions: [
-              'Seed treatment with bio-fertilizer',
-              'Form conservation furrows across the field slope',
-            ],
-            estimatedYield: '12 - 16 quintals/acre',
-            estimatedProfit: 'Moderate to High Margin',
-          },
-        ],
-        generalAdvice:
-          'Contingency crop recommendation based on regional agro-ecological zone averages.',
-        safetyNote:
-          'Verify recommendations with your local Krishi Vigyan Kendra (KVK) or agricultural extension officer.',
-      };
+      console.error('[GeminiService] Crop recommendations error:', err?.message);
+      throw err;
     }
   }
 }

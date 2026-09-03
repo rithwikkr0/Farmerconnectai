@@ -10,23 +10,24 @@ import type { AITask } from '@/lib/api'
 
 export default function FarmAICopilotPage() {
   const { messages, loading, error, sendMessage } = useAICopilot()
-  const { context } = useFarmContext()
+  const { context, toAIContext } = useFarmContext()
 
   const [inputQuery, setInputQuery] = useState('')
   const [selectedChannel, setSelectedChannel] = useState<AITask | 'all'>('all')
   const [voiceModalOpen, setVoiceModalOpen] = useState(false)
   const [scannerModalOpen, setScannerModalOpen] = useState(false)
 
-  const farmLocation = context.location || 'Mandya, Karnataka'
-  const primaryCrop = context.primaryCrop || 'Tomato (Arka Rakshak)'
+  const farmLocation = context.location || 'Anekal, Bengaluru Urban, Karnataka'
+  const primaryCrop = context.primaryCrop || 'Tomato'
 
   const handleSend = async (customPrompt?: string) => {
     const q = customPrompt ?? inputQuery
     if (!q.trim() || loading) return
     setInputQuery('')
+    const aiCtx = toAIContext ? toAIContext({ question: q }) : { location: farmLocation, crop: primaryCrop, soil: context.soilType }
     await sendMessage(
       q,
-      { location: farmLocation, crop: primaryCrop, soil: context.soilType },
+      aiCtx,
       selectedChannel === 'all' ? undefined : selectedChannel,
     )
   }
@@ -415,12 +416,10 @@ export default function FarmAICopilotPage() {
               </span>
               <div className="flex flex-wrap gap-2">
                 {[
-                  'What should I grow next season?',
-                  'Heavy rain is coming. What should I do?',
-                  'My tomato leaves are turning yellow.',
-                  'Find 3 workers for weeding tomorrow',
-                  'Who wants to buy my harvested crops?',
-                  'How to protect cattle in sudden rainfall?',
+                  'Which crop suits my farm?',
+                  'How should I manage my tomato crop this week?',
+                  'When should I irrigate?',
+                  'Where can I get fertilizer near Anekal?',
                 ].map((prompt, i) => (
                   <button
                     key={i}

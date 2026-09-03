@@ -13,64 +13,25 @@ import type {
   ApiResponse,
 } from '../types/index.js';
 
-const DEMO_SERVICES: AgriService[] = [
-  {
-    id: 's-1',
-    name: 'AeroKrishi Autonomous Drone Spraying',
-    type: 'drone',
-    location: 'Mandya Agro-Tech Corridor, Karnataka',
-    distance_km: 4.2,
-    contact: '+91 94480 88776',
-    pricing: '₹450 / acre (10 min flight)',
-    description:
-      'Ultra-low volume micron spray for blight protection and foliar nutrition. High canopy penetration with zero soil compaction.',
-    rating: 4.9,
-    verified: true,
-    _demo: true,
-  },
-  {
-    id: 's-2',
-    name: 'Raitha Sanjeevini Cold Storage Facility',
-    type: 'storage',
-    location: 'Mysore-Bangalore Highway Node, Karnataka',
-    distance_km: 8.5,
-    contact: '+91 98800 22334',
-    pricing: '₹1.80 / kg per month (Humidity Controlled)',
-    description:
-      '4°C to 12°C dynamic cold rooms optimized for tomatoes, chillies, and exotic horticulture. Warehouse receipt financing available.',
-    rating: 4.85,
-    verified: true,
-    _demo: true,
-  },
-  {
-    id: 's-3',
-    name: 'ICAR-KVK Regional Soil & Leaf Testing Lab',
-    type: 'lab',
-    location: 'V.C. Farm Campus, Mandya, Karnataka',
-    distance_km: 6.1,
-    contact: '+91 82322 45678',
-    pricing: '₹150 / complete sample profile',
-    description:
-      'Comprehensive 12-parameter soil health card testing: Available N, P, K, Organic Carbon, EC, pH, and micronutrients.',
-    rating: 4.95,
-    verified: true,
-    _demo: true,
-  },
-  {
-    id: 's-4',
-    name: 'Cauvery Custom Hiring Machinery Centre',
-    type: 'machinery',
-    location: 'Maddur Taluk, Karnataka',
-    distance_km: 11.3,
-    contact: '+91 97410 33445',
-    pricing: '₹850 / hour (Includes operator & diesel)',
-    description:
-      '55HP 4WD Tractors with laser land leveler, rotavator, multi-crop pneumatic precision planter, and paddy transplanters.',
-    rating: 4.75,
-    verified: true,
-    _demo: true,
-  },
-];
+import { ANEKAL_SERVICES } from '../data/services.demo.js';
+
+const DEMO_SERVICES: AgriService[] = ANEKAL_SERVICES.map((s) => ({
+  id: s.id,
+  name: s.providerName,
+  type: s.category.toLowerCase().includes('machinery') || s.category.toLowerCase().includes('tractor')
+    ? 'machinery'
+    : s.category.toLowerCase().includes('soil') || s.category.toLowerCase().includes('advisory')
+    ? 'lab'
+    : 'machinery',
+  location: s.location,
+  distance_km: 3.5,
+  contact: s.phone || 'Public Listing',
+  pricing: 'Standard Tariffs / On Request',
+  description: s.description,
+  rating: 4.9,
+  verified: s.verifiedFromPublicListing,
+  _demo: !s.verifiedFromPublicListing,
+}));
 
 async function loadServices(
   env: Env

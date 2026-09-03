@@ -1,39 +1,52 @@
 -- ==============================================================================
--- Bhoomi Mithra — Cloudflare D1 Demo Seed Data (Mandya, Karnataka Cluster)
--- All artificial records are explicitly tagged with '(DEMO)'
+-- Bhoomi Mithra — Cloudflare D1 Presentation Seed Data (Anekal, Bengaluru Urban)
+-- All mock records are explicitly tagged as DEMO
 -- ==============================================================================
 
--- 1. Farmers Registry (DEMO)
+-- Clear previous demo data
+DELETE FROM farmers WHERE id LIKE 'df_%' OR id LIKE 'farmer-%';
+DELETE FROM labor_workers WHERE id LIKE 'dl_%' OR id LIKE 'labor-%';
+DELETE FROM marketplace_listings WHERE id LIKE 'dm_%' OR id LIKE 'mkt-%';
+DELETE FROM agricultural_services WHERE id LIKE 'ds_%' OR id LIKE 'svc-%';
+
+-- 1. Farmers Registry (DEMO PROFILES - 5 Records)
 INSERT OR REPLACE INTO farmers (id, name, location, latitude, longitude, crops, problems, experience_years, land_size_acres, phone_masked, bio, verification_status, status)
 VALUES
-('df_001', 'Suresh Gowda (DEMO)', 'Hulivana, Mandya, Karnataka', 12.522, 76.898, '["Finger Millet (Ragi)", "Sugarcane"]', '["Stem borer", "Drip blockage"]', 14, 3.5, '+91 98450 XXXXX', 'Specializes in dryland Ragi and systemic drip fertigation in Mandya basin.', 'verified', 'active'),
-('df_002', 'Anusuya Devi (DEMO)', 'Maddur, Mandya, Karnataka', 12.584, 77.045, '["Paddy", "Groundnut"]', '["Blast disease", "Water logging"]', 11, 4.0, '+91 94480 XXXXX', 'Practicing system of rice intensification (SRI) and organic groundnut rotation.', 'verified', 'active'),
-('df_003', 'Chennappa Swamy (DEMO)', 'Pandavapura, Mandya, Karnataka', 12.498, 76.671, '["Tomato", "Chili"]', '["Leaf curl virus", "Mites"]', 9, 2.0, '+91 97410 XXXXX', 'Intensive vegetable polyhouse and open-field trellis cultivation expert.', 'verified', 'active'),
-('df_004', 'Manjunath K. (DEMO)', 'Srirangapatna, Mandya, Karnataka', 12.418, 76.695, '["Banana", "Paddy"]', '["Panama wilt", "Fertilizer dosage"]', 16, 5.0, '+91 99010 XXXXX', 'Cauvery delta fruit grower with experience in tissue culture Grand Naine banana.', 'verified', 'active');
+('farmer-001', 'Ravi K. (DEMO)', 'Anekal, Bengaluru Urban, Karnataka', 12.7109, 77.6946, '["paddy", "ragi", "tomato"]', '["water management", "weed control", "monsoon flooding"]', 12, 4.5, '+91 98450 XXXXX', 'Paddy and vegetable farmer near Anekal with focus on water management.', 'verified', 'active'),
+('farmer-002', 'Manjunath R. (DEMO)', 'Anekal, Bengaluru Urban, Karnataka', 12.7050, 77.6880, '["ragi", "groundnut", "vegetables"]', '["drip irrigation setup", "soil fertility", "pest control"]', 9, 3.0, '+91 94480 XXXXX', 'Drip irrigation practitioner growing ragi and groundnut in Anekal.', 'verified', 'active'),
+('farmer-003', 'Geetha S. (DEMO)', 'Jigani, Bengaluru Urban, Karnataka', 12.7780, 77.6420, '["tomato", "beans", "capsicum"]', '["protected cultivation", "leaf curl virus", "market access"]', 11, 2.5, '+91 97410 XXXXX', 'Protected cultivation specialist growing tomato and beans near Jigani.', 'verified', 'active'),
+('farmer-004', 'Prakash M. (DEMO)', 'Attibele, Bengaluru Urban, Karnataka', 12.7770, 77.7730, '["paddy", "ragi", "maize"]', '["organic transition", "soil health", "input costs"]', 15, 6.0, '+91 99010 XXXXX', 'Experienced organic-transitioning farmer in Attibele with paddy and ragi.', 'verified', 'active'),
+('farmer-005', 'Lakshmi N. (DEMO)', 'Chandapura, Bengaluru Urban, Karnataka', 12.8050, 77.6870, '["vegetables", "marigold", "spinach"]', '["pest management", "flower quality", "urban market access"]', 8, 1.5, '+91 98800 XXXXX', 'Flower and vegetable farmer in Chandapura supplying Bengaluru urban markets.', 'verified', 'active');
 
--- 2. Agricultural Labor Workers (DEMO)
+-- 2. Agricultural Labor Workers (DEMO WORKERS - 8 Records)
 INSERT OR REPLACE INTO labor_workers (id, name, location, latitude, longitude, skills, daily_rate_inr, rating, jobs_completed, phone_masked, verification_status, status)
 VALUES
-('dl_001', 'Gowda Labor Team (4 Workers) (DEMO)', 'Mandya East (1.8 km)', 12.524, 76.899, '["Trenching & Drainage", "Weeding", "Harvesting"]', 600, 4.9, 142, '+91 94480 XXXXX', 'verified', 'available'),
-('dl_002', 'Murugesan Agro Gang (5 Workers) (DEMO)', 'Maddur North (3.5 km)', 12.531, 76.910, '["Foliar Spraying", "Pesticide Application", "Tilling"]', 650, 4.8, 98, '+91 98800 XXXXX', 'verified', 'available'),
-('dl_003', 'Ravi Kumar (Specialist) (DEMO)', 'Srirangapatna Road (2.2 km)', 12.518, 76.892, '["Drip Irrigation Setup", "Trellis Construction"]', 750, 4.9, 210, '+91 97400 XXXXX', 'verified', 'available'),
-('dl_004', 'Cauvery Labor Collective (6 Workers) (DEMO)', 'Mandya Rural (4.0 km)', 12.505, 76.885, '["Transplanting", "Paddy Harvesting", "Pruning"]', 600, 4.7, 85, '+91 91640 XXXXX', 'verified', 'available'),
-('dl_005', 'Basava Earthworks & Labor Crew (DEMO)', 'Sugar Town, Mandya (2.9 km)', 12.529, 76.888, '["Land Bunding", "Canal Furrowing", "Deep Tilling"]', 700, 4.8, 160, '+91 98452 XXXXX', 'verified', 'available');
+('labor-001', 'Ramu B. (DEMO)', 'Anekal, Bengaluru Urban', 12.7120, 77.6950, '["general farm labour", "weeding", "harvesting"]', 550, 4.9, 85, '+91 94480 XXXXX', 'verified', 'available'),
+('labor-002', 'Savitha D. (DEMO)', 'Anekal, Bengaluru Urban', 12.7080, 77.6910, '["paddy transplanting", "weeding", "grading"]', 520, 4.8, 62, '+91 98800 XXXXX', 'verified', 'available'),
+('labor-003', 'Basavaraju M. (DEMO)', 'Anekal, Bengaluru Urban', 12.7060, 77.7000, '["tractor assistance", "land preparation", "irrigation maintenance"]', 850, 4.9, 140, '+91 97400 XXXXX', 'verified', 'available'),
+('labor-004', 'Nirmala K. (DEMO)', 'Jigani, Bengaluru Urban', 12.7150, 77.6870, '["vegetable harvesting", "packing", "sorting"]', 500, 4.7, 48, '+91 91640 XXXXX', 'verified', 'available'),
+('labor-005', 'Venkatesh R. (DEMO)', 'Anekal, Bengaluru Urban', 12.7200, 77.6960, '["spraying", "fertilizer application", "drip installation"]', 700, 4.8, 92, '+91 98452 XXXXX', 'verified', 'available'),
+('labor-006', 'Pushpa S. (DEMO)', 'Chandapura, Bengaluru Urban', 12.8050, 77.6880, '["weeding", "transplanting", "general farm labour"]', 500, 4.8, 55, '+91 99015 XXXXX', 'verified', 'available'),
+('labor-007', 'Shivanna P. (DEMO)', 'Attibele, Bengaluru Urban', 12.7770, 77.7730, '["drip installation", "irrigation maintenance", "spraying"]', 750, 4.9, 110, '+91 98458 XXXXX', 'verified', 'available'),
+('labor-008', 'Kavitha R. (DEMO)', 'Anekal, Bengaluru Urban', 12.7100, 77.6930, '["vegetable harvesting", "flower picking", "post-harvest handling"]', 520, 4.7, 39, '+91 97412 XXXXX', 'verified', 'available');
 
--- 3. Marketplace Listings (DEMO)
+-- 3. Marketplace Listings (DEMO LISTINGS - 8 Records)
 INSERT OR REPLACE INTO marketplace_listings (id, title, description, category, price_inr, unit, location, seller_name, seller_phone_masked, available, tags, verification_status)
 VALUES
-('dm_001', 'Certified Ragi Seed (GPU-28) (DEMO)', 'State certified high-germination seed bag with blast tolerance.', 'seeds', 1850, 'bag (25kg)', 'Mandya APMC Mandi', 'Kaveri Seeds Agency (DEMO)', '+91 98450 XXXXX', 1, '["DEMO", "Certified", "High-Yield"]', 'verified'),
-('dm_002', 'Neem Coated Urea (DEMO)', 'Govt subsidized neem coated urea with slow nitrogen release.', 'fertilizers', 266, 'bag (45kg)', 'Sugar Town Co-Op, Mandya', 'Mandya PACS Centre (DEMO)', '+91 94481 XXXXX', 1, '["DEMO", "Subsidized", "Soil Health"]', 'verified'),
-('dm_003', 'Cold-Pressed Groundnut Oil Cake (DEMO)', 'High protein organic fertilizer & dairy cattle supplement.', 'produce', 4200, 'quintal', 'Maddur Oil Mills', 'Maddur Agro Processing (DEMO)', '+91 97412 XXXXX', 1, '["DEMO", "Organic", "Cattle Feed"]', 'verified'),
-('dm_004', 'Multi-Crop Power Reaper (DEMO)', 'Walk-behind reaper for quick paddy and ragi harvest. 5HP diesel.', 'equipment', 75000, 'unit', 'Pandavapura Workshop', 'Kisan Machinery Works (DEMO)', '+91 99015 XXXXX', 1, '["DEMO", "Mechanized", "Harvester"]', 'verified'),
-('dm_005', 'Bio-Trichoderma Viride Bio-Fungicide (DEMO)', 'Controls root rot and wilt in solanaceous vegetables and pulses.', 'pesticides', 180, 'kg', 'KVK Mandya Extension', 'BioCore Agro Inputs (DEMO)', '+91 91645 XXXXX', 1, '["DEMO", "Bio-Control", "Organic"]', 'verified'),
-('dm_006', 'Drip Lateral Pipes 16mm Class-2 (DEMO)', 'UV stabilized inline emitter tubing 400m coil, 40cm spacing.', 'equipment', 3400, 'bundle (400m)', 'Srirangapatna Irrigation Depot', 'Cauvery Micro-Agri (DEMO)', '+91 98458 XXXXX', 1, '["DEMO", "Water-Saving", "Drip"]', 'verified');
+('mkt-001', 'Urea Fertilizer — 50 kg Bag (DEMO)', 'Granular urea (46% N). Standard quality for paddy, ragi, and vegetables. Minimum order 2 bags.', 'fertilizers', 295, '50 kg bag', 'Anekal, Bengaluru Urban', 'Anekal Agri Inputs (DEMO)', '+91 98450 XXXXX', 1, '["urea", "nitrogen", "fertilizer", "DEMO"]', 'verified'),
+('mkt-002', '19:19:19 NPK Water-Soluble Fertilizer (DEMO)', 'Balanced NPK suitable for fertigation and foliar spray. Good for tomato and flower crops.', 'fertilizers', 1450, '25 kg bag', 'Jigani, Bengaluru Urban', 'Jigani Crop Inputs (DEMO)', '+91 94481 XXXXX', 1, '["NPK", "water-soluble", "fertigation", "DEMO"]', 'verified'),
+('mkt-003', 'Vermicompost — 25 kg Bag (DEMO)', 'Certified vermicompost. Improves soil structure and beneficial microbes. Safe for all crops.', 'fertilizers', 350, '25 kg bag', 'Anekal, Bengaluru Urban', 'Anekal Organic Inputs (DEMO)', '+91 97412 XXXXX', 1, '["organic", "vermicompost", "soil-health", "DEMO"]', 'verified'),
+('mkt-004', 'Hybrid Tomato Seeds — 10g Packet (DEMO)', 'Heat-tolerant hybrid tomato seeds. High yield, disease-resistant variety for Bengaluru area.', 'seeds', 280, '10g packet', 'Anekal, Bengaluru Urban', 'Anekal Seed Centre (DEMO)', '+91 99015 XXXXX', 1, '["tomato", "hybrid", "seeds", "DEMO"]', 'verified'),
+('mkt-005', 'Ragi (Finger Millet) Seeds — 5 kg (DEMO)', 'Certified GPU-28 ragi seeds. Drought-tolerant. Ideal for red sandy loam soils.', 'seeds', 160, '5 kg bag', 'Attibele, Bengaluru Urban', 'Attibele Seed House (DEMO)', '+91 91645 XXXXX', 1, '["ragi", "finger millet", "seeds", "DEMO"]', 'verified'),
+('mkt-006', 'Neem-Based Bio Pesticide — 1 Litre (DEMO)', 'Azadirachtin-based biopesticide. Effective against aphids, whitefly, and mites.', 'pesticides', 420, '1 litre', 'Jigani, Bengaluru Urban', 'Jigani Bio Inputs (DEMO)', '+91 98458 XXXXX', 1, '["neem", "biopesticide", "organic", "DEMO"]', 'verified'),
+('mkt-007', 'Drip Irrigation Kit — 0.5 Acre (DEMO)', 'Complete drip kit for 0.5 acre. Includes main line, laterals, inline drippers, Y-filter and reducer.', 'equipment', 13500, 'unit kit', 'Anekal, Bengaluru Urban', 'Anekal Irrigation Supplies (DEMO)', '+91 98800 XXXXX', 1, '["drip", "irrigation", "water-saving", "DEMO"]', 'verified'),
+('mkt-008', 'Fresh Ragi — Farmer Lot (50 kg) (DEMO)', 'Freshly harvested ragi (GPU-28). Clean, dry, moisture < 12%. Direct from farm.', 'produce', 3800, '50 kg bag', 'Anekal, Bengaluru Urban', 'Anekal Farmers Collective (DEMO)', '+91 97400 XXXXX', 1, '["ragi", "produce", "farm-fresh", "DEMO"]', 'verified');
 
--- 4. Agricultural Services (DEMO)
+-- 4. Agricultural Services (5 Records: 4 Real Public Listings + 1 KVK)
 INSERT OR REPLACE INTO agricultural_services (id, provider_name, category, location, latitude, longitude, phone_masked, operating_radius_km, services, tariff_description, verification_status, status)
 VALUES
-('ds_001', 'Mandya Precision Drone Spraying (DEMO)', 'drone', 'Mandya Central', 12.522, 76.898, '+91 98450 XXXXX', 25, '["Drone foliar spray", "NDVI canopy analysis", "Nano-urea dispersion"]', '₹450 / acre', 'verified', 'active'),
-('ds_002', 'Cauvery Custom Hiring Centre (CHSC) (DEMO)', 'machinery', 'Maddur Hub', 12.584, 77.045, '+91 94480 XXXXX', 30, '["45HP 4WD Tractor", "Rotavator", "Laser Land Leveller", "Paddy Combine"]', '₹900 - ₹1,800 / hour', 'verified', 'active'),
-('ds_003', 'Krishi Vigyan Kendra Soil Testing Lab (DEMO)', 'lab', 'V.C. Farm, Mandya', 12.560, 76.850, '+91 97410 XXXXX', 50, '["14-Parameter NPK & Micronutrient Profile", "EC/pH Soil Test", "Fertilizer Card"]', '₹150 / sample', 'verified', 'active'),
-('ds_004', 'Dr. Anand Mobile Veterinary Clinic (DEMO)', 'veterinary', 'Pandavapura / Mandya', 12.498, 76.671, '+91 99010 XXXXX', 20, '["Hallikar Breed Health Check", "Mastitis Screening", "Artificial Insemination", "Vaccination"]', '₹200 visit + medicine', 'verified', 'active');
+('svc-001', 'Sri Manjunatha Enterprises (Sonalika Dealer)', 'machinery', 'Vishwakarma Nilaya, Chandapura Main Road, Shivaji Circle, Rudrappa Layout, Anekal', 12.7109, 77.6946, 'Public Listing', 35, '["Sonalika Tractor Sales & Service", "Rotavators", "Tillage Equipment", "Original Spare Parts"]', 'Official Sonalika Dealer Tariffs', 'verified', 'active'),
+('svc-002', 'MS Agri Clinic', 'machinery', 'Anekal Town, Bengaluru Urban', 12.7100, 77.6940, 'Public Listing', 25, '["Fertilizer Dealer", "Agricultural Equipment Dealer", "Agricultural Sprayer Sales & Repair"]', 'Standard Retail Tariffs', 'verified', 'active'),
+('svc-003', 'RCM Agriculture Products', 'lab', 'Anekal, Bengaluru Urban', 12.7120, 77.6955, 'Public Listing', 25, '["Soil Health Products", "Fertilizers", "Spray Adjuvants", "Plant Growth Regulators"]', 'Standard Tariffs', 'verified', 'active'),
+('svc-004', 'Sri Lakshmi Seeds & Fertilizers', 'machinery', 'Anekal Market Road, Bengaluru Urban', 12.7090, 77.6930, 'Public Listing', 20, '["Seeds Retail", "Plant Protection Chemicals", "Bio-Fertilizers", "Knapsack Sprayers"]', 'Standard Retail Tariffs', 'verified', 'active'),
+('svc-005', 'Anekal Krishi Vigyan Kendra Support (DEMO)', 'lab', 'Bengaluru Urban, Karnataka', 12.7500, 77.6500, 'Public Listing', 50, '["14-Parameter Soil Health Card Testing", "Farmer Training", "Pest Diagnosis Advisory", "Crop Planning"]', 'Government Subsidized / Free', 'verified', 'active');

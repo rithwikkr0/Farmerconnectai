@@ -42,6 +42,7 @@ const NAV_GROUPS: NavGroup[] = [
   {
     label: 'CONNECT',
     items: [
+      { name: 'Ecosystem Hub', href: '/community', icon: 'hub' },
       { name: 'Farmers', href: '/farmers', icon: 'person_search' },
       { name: 'Labor', href: '/labor', icon: 'engineering' },
       { name: 'Marketplace', href: '/marketplace', icon: 'storefront' },
@@ -67,7 +68,7 @@ export function StitchShell({ children }: { children: React.ReactNode }) {
     ? `${context.district}`
     : context.location
       ? `${context.location.split(',')[0]}`
-      : 'Mandya'
+      : 'Anekal'
 
   return (
     <div className="min-h-screen bg-surface-container-lowest text-on-surface antialiased flex">

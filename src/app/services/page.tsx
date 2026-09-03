@@ -26,7 +26,7 @@ export default function AgriServicesPage() {
   const [services, setServices] = useState<ServiceRecord[]>([])
   const [loading, setLoading] = useState(false)
 
-  const farmLocation = context.location || 'Mandya, Karnataka'
+  const farmLocation = context.location || 'Anekal, Bengaluru Urban, Karnataka'
 
   useEffect(() => {
     setLoading(true)
@@ -128,9 +128,13 @@ export default function AgriServicesPage() {
                         <span className="text-[10px] font-label-code-sm text-secondary uppercase tracking-wider font-bold">
                           {svc.service_type.toUpperCase()}
                         </span>
-                        {svc._demo && (
+                        {svc._demo ? (
                           <span className="px-2 py-0.5 rounded-md bg-surface-container text-[9px] font-label-code-sm uppercase font-bold text-on-surface-variant border border-outline-variant/30">
                             DEMO
+                          </span>
+                        ) : (
+                          <span className="px-2 py-0.5 rounded-md bg-secondary/15 text-[9px] font-label-code-sm uppercase font-bold text-secondary border border-secondary/30">
+                            REAL PUBLIC LISTING
                           </span>
                         )}
                       </div>
@@ -161,11 +165,11 @@ export default function AgriServicesPage() {
                 <div className="pt-3 border-t border-outline-variant/20">
                   <button
                     type="button"
-                    onClick={() => toast.success(`Calling ${svc.provider_name}: ${svc.contact_phone}`)}
+                    onClick={() => toast.info(`${svc.provider_name}: ${svc.location}`)}
                     className="w-full py-2.5 rounded-xl bg-secondary text-surface font-headline-sm text-xs font-bold uppercase tracking-wider shadow-sm hover:opacity-90 transition-all flex items-center justify-center gap-2"
                   >
-                    <span className="material-symbols-outlined text-base">call</span>
-                    <span>Contact Service Provider ({svc.contact_phone})</span>
+                    <span className="material-symbols-outlined text-base">storefront</span>
+                    <span>View Location &amp; Listing Details</span>
                   </button>
                 </div>
               </div>

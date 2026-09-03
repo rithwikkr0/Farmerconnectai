@@ -194,7 +194,7 @@ export async function handleRegister(
   const profileId = `fp_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
   const parsedLand = parseFloat(String(landSizeAcres ?? landSize ?? '2.5')) || 2.5;
 
-  const farmLocation = location?.trim() || [village, district, state].filter(Boolean).join(', ') || 'Mandya, Karnataka';
+  const farmLocation = location?.trim() || [village, district, state].filter(Boolean).join(', ') || 'Anekal, Bengaluru Urban, Karnataka';
 
   await env.DB.prepare(
     `INSERT INTO farm_profiles (
@@ -214,7 +214,7 @@ export async function handleRegister(
       parsedLand,
       soilType?.trim() || 'Red sandy loam',
       waterAvailability?.trim() || 'moderate',
-      currentCrop?.trim() || 'Finger Millet (Ragi)',
+      currentCrop?.trim() || 'Tomato',
       season?.trim() || 'Kharif',
       farmingGoal?.trim() || 'profit',
       livestock?.trim() || null,
@@ -426,7 +426,7 @@ export async function handleUpdateProfile(
   } = body;
 
   const updatedAt = new Date().toISOString();
-  const farmLocation = location?.trim() || [village, district, state].filter(Boolean).join(', ') || auth.profile?.location || 'Mandya, Karnataka';
+  const farmLocation = location?.trim() || [village, district, state].filter(Boolean).join(', ') || auth.profile?.location || 'Anekal, Bengaluru Urban, Karnataka';
   const parsedLand = parseFloat(String(landSizeAcres)) || auth.profile?.land_size_acres || 2.5;
 
   if (auth.profile) {

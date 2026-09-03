@@ -11,8 +11,9 @@ import type { FarmerMatch } from '@/lib/api'
 export default function FindFarmerPage() {
   const { context } = useFarmContext()
   const [crop, setCrop] = useState(context.primaryCrop || 'Tomato')
-  const [location, setLocation] = useState(context.location || 'Mandya')
+  const [location, setLocation] = useState(context.location || 'Anekal, Bengaluru Urban')
   const [problem, setProblem] = useState('')
+  const [distanceKm, setDistanceKm] = useState('25')
   const [matches, setMatches] = useState<FarmerMatch[]>([])
   const [loading, setLoading] = useState(false)
   const [isDemo, setIsDemo] = useState(true)
@@ -53,45 +54,58 @@ export default function FindFarmerPage() {
 
           <div className="flex items-center gap-2">
             <span className="px-3 py-1 rounded-full bg-surface-container-high border border-teal-500/30 font-label-code-sm text-xs text-teal-400 font-bold uppercase">
-              {isDemo ? 'EXAMPLE PEER PROFILES' : 'VERIFIED NETWORK'}
+              DEMO PROFILE
             </span>
           </div>
         </div>
 
         {/* Search Parameter Bar */}
         <div className="p-6 rounded-3xl bg-surface-container-low/80 border border-primary/25 backdrop-blur-2xl shadow-xl flex flex-col gap-4">
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
             <div className="flex flex-col gap-1">
               <label className="font-label-code-sm text-xs text-on-surface uppercase">Target Crop</label>
               <input
                 type="text"
                 value={crop}
                 onChange={(e) => setCrop(e.target.value)}
-                placeholder="e.g. Tomato, Paddy, Cotton"
+                placeholder="e.g. Tomato, Paddy, Ragi"
                 className="w-full h-11 px-3.5 rounded-xl bg-surface-container-lowest/80 border border-outline-variant/30 text-on-surface font-body-sm text-sm focus:outline-none focus:border-primary"
               />
             </div>
 
             <div className="flex flex-col gap-1">
-              <label className="font-label-code-sm text-xs text-on-surface uppercase">Location / District</label>
+              <label className="font-label-code-sm text-xs text-on-surface uppercase">Location / Area</label>
               <input
                 type="text"
                 value={location}
                 onChange={(e) => setLocation(e.target.value)}
-                placeholder="e.g. Mandya, Thanjavur"
+                placeholder="e.g. Anekal, Jigani, Attibele"
                 className="w-full h-11 px-3.5 rounded-xl bg-surface-container-lowest/80 border border-outline-variant/30 text-on-surface font-body-sm text-sm focus:outline-none focus:border-primary"
               />
             </div>
 
             <div className="flex flex-col gap-1">
-              <label className="font-label-code-sm text-xs text-on-surface uppercase">Specific Challenge</label>
+              <label className="font-label-code-sm text-xs text-on-surface uppercase">Challenge / Need</label>
               <input
                 type="text"
                 value={problem}
                 onChange={(e) => setProblem(e.target.value)}
-                placeholder="e.g. Blight, waterlogging, drip setup"
+                placeholder="e.g. Water management, drip setup"
                 className="w-full h-11 px-3.5 rounded-xl bg-surface-container-lowest/80 border border-outline-variant/30 text-on-surface font-body-sm text-sm focus:outline-none focus:border-primary"
               />
+            </div>
+
+            <div className="flex flex-col gap-1">
+              <label className="font-label-code-sm text-xs text-on-surface uppercase">Max Distance</label>
+              <select
+                value={distanceKm}
+                onChange={(e) => setDistanceKm(e.target.value)}
+                className="w-full h-11 px-3.5 rounded-xl bg-surface-container-lowest/80 border border-outline-variant/30 text-on-surface font-body-sm text-sm focus:outline-none focus:border-primary"
+              >
+                <option value="10">Within 10 km</option>
+                <option value="25">Within 25 km</option>
+                <option value="50">Within 50 km</option>
+              </select>
             </div>
           </div>
 
@@ -112,16 +126,16 @@ export default function FindFarmerPage() {
         <div className="flex flex-col gap-4">
           <div className="flex items-center justify-between">
             <h2 className="font-headline-md text-xl font-bold text-on-surface">
-              Matched Experienced Farmers Near You
+              Matched Experienced Farmers Near Anekal
             </h2>
             <span className="font-label-code-sm text-xs text-on-surface-variant font-mono">
-              {matches.length} Matches Found
+              {matches.length} Profiles
             </span>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {matches.map((item) => {
-              const { farmer, matchScore, matchReasons, distanceKm } = item
+              const { farmer, matchScore, matchReasons, distanceKm: dist } = item
               return (
                 <div
                   key={farmer.id}
@@ -134,14 +148,19 @@ export default function FindFarmerPage() {
                           {farmer.name.slice(0, 2).toUpperCase()}
                         </div>
                         <div className="flex flex-col">
-                          <h3 className="font-headline-sm text-base font-bold text-on-surface">{farmer.name}</h3>
+                          <div className="flex items-center gap-2">
+                            <h3 className="font-headline-sm text-base font-bold text-on-surface">{farmer.name}</h3>
+                            <span className="px-2 py-0.5 rounded bg-surface-container-high text-[9px] font-label-code-sm uppercase font-bold text-teal-400 border border-teal-500/20">
+                              DEMO PROFILE
+                            </span>
+                          </div>
                           <span className="font-label-code-sm text-[10px] text-primary">
-                            {farmer.location} {distanceKm ? `• ${distanceKm} km away` : ''}
+                            {farmer.location}
                           </span>
                         </div>
                       </div>
 
-                      <div className="flex items-center gap-1 bg-surface-container-high px-2.5 py-1 rounded-lg text-xs font-bold text-primary font-mono">
+                      <div className="flex items-center gap-1 bg-surface-container-high px-2.5 py-1 rounded-lg text-xs font-bold text-primary font-mono shrink-0">
                         <span>{matchScore}% Match</span>
                       </div>
                     </div>

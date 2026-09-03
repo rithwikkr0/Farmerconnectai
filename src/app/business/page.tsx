@@ -22,51 +22,51 @@ interface BusinessDeal {
 const DEALS: BusinessDeal[] = [
   {
     id: 'b-1',
-    company: 'AgriCorp Processing Foods Ltd',
-    title: 'Contract Farming Buyback Agreement: Processing Tomato',
+    company: 'Sri Lakshmi Seeds & Fertilizers (Anekal)',
+    title: 'Seed Supplier Enquiry: Certified Hybrid Seeds & Seedling Lots',
     type: 'contract',
-    value: 'Guaranteed ₹32 / kg floor price',
-    volume: '50 to 200 metric tons',
-    tenure: '3 Seasons (18 Months)',
-    description: 'Guaranteed off-take agreement for high-brix hybrid tomato varieties. Company provides subsidized certified seeds and agronomist inspection.',
-    eligibility: 'Minimum 2 acres drip-irrigated plot within 40km of Mandya processing plant.',
+    value: 'Direct Wholesale Pricing',
+    volume: '5kg to 50kg Lots',
+    tenure: 'Seasonal Supply Agreement',
+    description: 'Publicly listed agricultural input retailer in Anekal supplying certified tomato, ragi, and vegetable seeds. Express interest to enquire about bulk nursery seedling bookings and distributor discounts.',
+    eligibility: 'Farmers and grower collectives in Anekal, Jigani, and Attibele taluks.',
     verified: true,
   },
   {
     id: 'b-2',
-    company: 'FreshGlobal Exports Consortium',
-    title: 'Export Grade Produce Sourcing: Clean Residue Lot',
+    company: 'RCM Agriculture Products (Anekal)',
+    title: 'Fertilizer Supplier Enquiry: Soil Nutrients & Bio-Inputs',
     type: 'bulk_procure',
-    value: '₹44 / kg + 10% Quality Bonus',
-    volume: '20 metric tons',
-    tenure: 'Immediate Harvest Cycle',
-    description: 'Consortium sourcing export-certified vegetables for Middle East air-cargo. Zero organophosphate residue certificate required.',
-    eligibility: 'APEDA certified or cooperative group with pesticide-tested soil records.',
+    value: 'Dealer Wholesale Rates',
+    volume: 'Customized Fertigation Lots',
+    tenure: 'Ongoing Season',
+    description: 'Publicly listed dealer of organic soil conditioners, balanced fertilizers, and spray adjuvants in Anekal. Express interest to enquire about bulk fertilizer procurement and seasonal delivery to farm gates.',
+    eligibility: 'Active farmers in Bengaluru Urban agro-climatic corridor.',
     verified: true,
   },
   {
     id: 'b-3',
-    company: 'PMKSY State Horticulture Dept',
-    title: 'Micro-Irrigation (Drip / Sprinkler) Capital Subsidy',
+    company: 'Sri Manjunatha Enterprises (Sonalika Dealer, Anekal)',
+    title: 'Machinery Dealership Enquiry: Tractors & Custom Hiring Support',
     type: 'subsidy',
-    value: 'Up to 75% Capital Grant (Max ₹55,000/ac)',
-    volume: 'Direct to Vendor Subsidy',
-    tenure: 'Fiscal Year 2026',
-    description: 'Government subsidy for installing inline drip irrigation and automated venturi fertigation systems for small and marginal farmers.',
-    eligibility: 'Land revenue records (RTC/Pahani) and valid Aadhaar linked bank account.',
+    value: 'Authorised Dealer Terms',
+    volume: '45HP to 60HP Tractors & Implements',
+    tenure: 'Sales, Service & Spares',
+    description: 'Authorised Sonalika tractor dealership at Vishwakarma Nilaya, Chandapura Main Road, Anekal. Express interest to enquire about tractor demonstrations, rotavator attachments, and custom hiring availability.',
+    eligibility: 'Individual farmers, custom hiring operators, and farm cooperatives.',
     verified: true,
   },
   {
     id: 'b-4',
-    company: 'Verra Soil Bio-Carbon Registry',
-    title: 'Regenerative Agriculture Carbon Credit Program',
+    company: 'Bengaluru Urban APMC & Processing Consortium',
+    title: 'Bulk Produce Buyer Enquiry: Tomato & Fresh Vegetable Off-Take',
     type: 'carbon',
-    value: '₹1,800 / acre per year recurring',
-    volume: 'Soil Organic Carbon Offsets',
-    tenure: '5 Year Program',
-    description: 'Earn voluntary carbon credits by adopting no-till, cover cropping, and bio-char application verified by Sentinel-2 satellite biomass data.',
-    eligibility: 'Continuous farming with verified minimum 0.5% organic carbon increase over baseline.',
-    verified: true,
+    value: 'Market-Linked Floor Price',
+    volume: '2 to 10 Metric Ton Lots',
+    tenure: 'Immediate Harvest Window',
+    description: 'Example opportunity: Aggregator network sourcing farm-fresh tomatoes, beans, and leafy greens for Bengaluru urban retail and processing units.',
+    eligibility: 'Farmers with harvested lots meeting standard grading and moisture criteria.',
+    verified: false,
   },
 ]
 
@@ -181,19 +181,11 @@ export default function BusinessOpportunitiesPage() {
               <div className="pt-3 border-t border-outline-variant/20 flex items-center gap-2">
                 <button
                   type="button"
-                  onClick={() => toast.success(`Application initiated for: ${deal.title}`)}
+                  onClick={() => toast.success('Interest request recorded')}
                   className="flex-1 py-2.5 rounded-xl bg-secondary text-on-secondary font-headline-sm text-xs font-bold uppercase tracking-wider shadow-sm hover:bg-secondary-container transition-all flex items-center justify-center gap-2"
                 >
-                  <span className="material-symbols-outlined text-base">send</span>
-                  <span>Apply for Partnership</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => toast.info(`Detailed corporate prospectus requested from ${deal.company}`)}
-                  className="px-4 py-2.5 rounded-xl bg-surface-container-high text-on-surface hover:text-secondary transition-colors font-body-sm text-xs font-semibold"
-                >
-                  Prospectus
+                  <span className="material-symbols-outlined text-base">handshake</span>
+                  <span>Express Interest</span>
                 </button>
               </div>
             </div>

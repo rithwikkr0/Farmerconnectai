@@ -99,125 +99,130 @@ function getDemoWeather(location: string): WeatherData {
 
 // ─── Live Open-Meteo Meteorology Fetcher ───────────────────────────────────────
 
-async function fetchLiveWeather(location: string): Promise<WeatherData> {
-  try {
-    const cleanLocation = location.trim();
-    if (!cleanLocation) {
-      return getDemoWeather('Mandya, Karnataka');
+const ANEKAL_COORDS = { latitude: 12.7109, longitude: 77.6946, name: 'Anekal', admin1: 'Karnataka' };
+
+async function fetchLiveWeather(location: string, customLat?: number, customLng?: number): Promise<WeatherData> {
+  const cleanLocation = location.trim() || 'Anekal, Bengaluru Urban, Karnataka';
+
+  let place = {
+    name: 'Anekal',
+    admin1: 'Karnataka',
+    latitude: customLat ?? ANEKAL_COORDS.latitude,
+    longitude: customLng ?? ANEKAL_COORDS.longitude,
+  };
+
+  // If no explicit lat/lng passed and location is not Anekal, try geocoding
+  if ((customLat == null || customLng == null) && !cleanLocation.toLowerCase().includes('anekal')) {
+    try {
+      const geoController = new AbortController();
+      const geoTimeout = setTimeout(() => geoController.abort(), 3500);
+
+      const geoUrl = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(
+        cleanLocation
+      )}&count=1&language=en&format=json`;
+
+      const geoRes = await fetch(geoUrl, {
+        signal: geoController.signal,
+        headers: { 'User-Agent': 'BhoomiMithra-Agricultural-OS/1.0' },
+      });
+      clearTimeout(geoTimeout);
+
+      if (geoRes.ok) {
+        const geoData = (await geoRes.json()) as {
+          results?: Array<{
+            name: string;
+            latitude: number;
+            longitude: number;
+            admin1?: string;
+            country?: string;
+          }>;
+        };
+        if (geoData.results?.[0]) {
+          const r = geoData.results[0];
+          place = {
+            name: r.name,
+            admin1: r.admin1 || 'Karnataka',
+            latitude: r.latitude,
+            longitude: r.longitude,
+          };
+        }
+      }
+    } catch (err) {
+      console.warn('[Weather] Geocoding failed, using Anekal node:', err);
     }
-
-    // 1. Geocode location with 4-second timeout
-    const geoController = new AbortController();
-    const geoTimeout = setTimeout(() => geoController.abort(), 4000);
-
-    const geoUrl = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(
-      cleanLocation
-    )}&count=1&language=en&format=json`;
-
-    const geoRes = await fetch(geoUrl, {
-      signal: geoController.signal,
-      headers: { 'User-Agent': 'BhoomiMithra-Agricultural-OS/1.0' },
-    });
-    clearTimeout(geoTimeout);
-
-    if (!geoRes.ok) {
-      throw new Error(`Geocoding HTTP error ${geoRes.status}`);
-    }
-
-    const geoData = (await geoRes.json()) as {
-      results?: Array<{
-        name: string;
-        latitude: number;
-        longitude: number;
-        admin1?: string;
-        country?: string;
-      }>;
-    };
-
-    const place = geoData.results?.[0];
-    if (!place) {
-      // If geocoding finds no match, fallback to calibrated demo weather
-      return getDemoWeather(cleanLocation);
-    }
-
-    // 2. Fetch current and 7-day daily forecast
-    const forecastController = new AbortController();
-    const forecastTimeout = setTimeout(() => forecastController.abort(), 4000);
-
-    const weatherUrl = `https://api.open-meteo.com/v1/forecast?latitude=${place.latitude}&longitude=${place.longitude}&current=temperature_2m,relative_humidity_2m,wind_speed_10m,precipitation,weather_code&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum&timezone=auto`;
-
-    const weatherRes = await fetch(weatherUrl, {
-      signal: forecastController.signal,
-      headers: { 'User-Agent': 'BhoomiMithra-Agricultural-OS/1.0' },
-    });
-    clearTimeout(forecastTimeout);
-
-    if (!weatherRes.ok) {
-      throw new Error(`Weather API HTTP error ${weatherRes.status}`);
-    }
-
-    const wData = (await weatherRes.json()) as {
-      current: {
-        temperature_2m: number;
-        relative_humidity_2m: number;
-        wind_speed_10m: number;
-        precipitation: number;
-        weather_code: number;
-      };
-      daily: {
-        time: string[];
-        temperature_2m_max: number[];
-        temperature_2m_min: number[];
-        precipitation_sum: number[];
-        weather_code: number[];
-      };
-    };
-
-    const currentCondition = mapWmoWeatherCode(wData.current.weather_code);
-    const forecastDays = (wData.daily.time || []).slice(1, 6).map((date, idx) => {
-      const dayIdx = idx + 1;
-      return {
-        date,
-        max_temp_c: Math.round(wData.daily.temperature_2m_max[dayIdx] ?? 30),
-        min_temp_c: Math.round(wData.daily.temperature_2m_min[dayIdx] ?? 22),
-        rainfall_mm: parseFloat((wData.daily.precipitation_sum[dayIdx] ?? 0).toFixed(1)),
-        condition: mapWmoWeatherCode(wData.daily.weather_code[dayIdx] ?? 0),
-        humidity_pct: Math.min(
-          95,
-          Math.max(40, Math.round(wData.current.relative_humidity_2m + Math.sin(dayIdx) * 8))
-        ),
-      };
-    });
-
-    const resolvedLocation = place.admin1
-      ? `${place.name}, ${place.admin1}`
-      : place.name;
-
-    return {
-      _demo: false,
-      status: 'LIVE',
-      source: 'Open-Meteo Real-time Meteorological API',
-      location: resolvedLocation,
-      latitude: place.latitude,
-      longitude: place.longitude,
-      current: {
-        temperature_c: Math.round(wData.current.temperature_2m),
-        humidity_pct: Math.round(wData.current.relative_humidity_2m),
-        wind_kph: Math.round(wData.current.wind_speed_10m),
-        condition: currentCondition,
-        uv_index: 7,
-        rainfall_mm: parseFloat((wData.current.precipitation ?? 0).toFixed(1)),
-      },
-      forecast: forecastDays,
-      fetched_at: new Date().toISOString(),
-    };
-  } catch (err) {
-    console.warn(
-      `[Weather] Live query failed for "${location}", falling back to calibrated node:`,
-      err
-    );
-    return getDemoWeather(location);
   }
+
+  // Fetch current and daily forecast from Open-Meteo
+  const forecastController = new AbortController();
+  const forecastTimeout = setTimeout(() => forecastController.abort(), 4000);
+
+  const weatherUrl = `https://api.open-meteo.com/v1/forecast?latitude=${place.latitude}&longitude=${place.longitude}&current=temperature_2m,relative_humidity_2m,wind_speed_10m,precipitation,weather_code&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum&timezone=auto`;
+
+  const weatherRes = await fetch(weatherUrl, {
+    signal: forecastController.signal,
+    headers: { 'User-Agent': 'BhoomiMithra-Agricultural-OS/1.0' },
+  });
+  clearTimeout(forecastTimeout);
+
+  if (!weatherRes.ok) {
+    throw new Error(`Open-Meteo API HTTP error ${weatherRes.status}`);
+  }
+
+  const wData = (await weatherRes.json()) as {
+    current: {
+      temperature_2m: number;
+      relative_humidity_2m: number;
+      wind_speed_10m: number;
+      precipitation: number;
+      weather_code: number;
+    };
+    daily: {
+      time: string[];
+      temperature_2m_max: number[];
+      temperature_2m_min: number[];
+      precipitation_sum: number[];
+      weather_code: number[];
+    };
+  };
+
+  const currentCondition = mapWmoWeatherCode(wData.current.weather_code);
+  const forecastDays = (wData.daily.time || []).slice(1, 6).map((date, idx) => {
+    const dayIdx = idx + 1;
+    return {
+      date,
+      max_temp_c: Math.round(wData.daily.temperature_2m_max[dayIdx] ?? 30),
+      min_temp_c: Math.round(wData.daily.temperature_2m_min[dayIdx] ?? 22),
+      rainfall_mm: parseFloat((wData.daily.precipitation_sum[dayIdx] ?? 0).toFixed(1)),
+      condition: mapWmoWeatherCode(wData.daily.weather_code[dayIdx] ?? 0),
+      humidity_pct: Math.min(
+        95,
+        Math.max(40, Math.round(wData.current.relative_humidity_2m + Math.sin(dayIdx) * 8))
+      ),
+    };
+  });
+
+  const resolvedLocation = place.admin1
+    ? `${place.name}, ${place.admin1}`
+    : place.name;
+
+  return {
+    _demo: false,
+    status: 'LIVE',
+    source: 'Open-Meteo Real-time Meteorological API',
+    location: resolvedLocation,
+    latitude: place.latitude,
+    longitude: place.longitude,
+    current: {
+      temperature_c: Math.round(wData.current.temperature_2m),
+      humidity_pct: Math.round(wData.current.relative_humidity_2m),
+      wind_kph: Math.round(wData.current.wind_speed_10m),
+      condition: currentCondition,
+      uv_index: 7,
+      rainfall_mm: parseFloat((wData.current.precipitation ?? 0).toFixed(1)),
+    },
+    forecast: forecastDays,
+    fetched_at: new Date().toISOString(),
+  };
 }
 
 // ─── GET /api/weather ─────────────────────────────────────────────────────────
@@ -227,28 +232,24 @@ export async function handleGetWeather(
   _env: Env
 ): Promise<Response> {
   const url = new URL(request.url);
-  const location = url.searchParams.get('location');
+  const location = url.searchParams.get('location') || 'Anekal, Bengaluru Urban, Karnataka';
+  const latStr = url.searchParams.get('lat');
+  const lngStr = url.searchParams.get('lng');
+  const customLat = latStr ? parseFloat(latStr) : undefined;
+  const customLng = lngStr ? parseFloat(lngStr) : undefined;
 
-  if (!location || location.trim() === '') {
+  try {
+    const weather = await fetchLiveWeather(location.trim(), customLat, customLng);
+    const response: ApiResponse<WeatherData> = { success: true, data: weather };
+    return jsonResponse(response);
+  } catch (err: any) {
+    console.error('[Weather] Live Open-Meteo fetch failed:', err?.message);
     return errorResponse(
-      'Missing query parameter: location',
-      'MISSING_PARAM',
-      400
+      'LIVE WEATHER TEMPORARILY UNAVAILABLE',
+      'WEATHER_UNAVAILABLE',
+      503
     );
   }
-
-  // Cap location query length to prevent abusive requests
-  if (location.length > 150) {
-    return errorResponse(
-      'location query too long (max 150 chars)',
-      'PARAM_TOO_LONG',
-      400
-    );
-  }
-
-  const weather = await fetchLiveWeather(location.trim());
-  const response: ApiResponse<WeatherData> = { success: true, data: weather };
-  return jsonResponse(response);
 }
 
 // ─── POST /api/weather/advice ─────────────────────────────────────────────────
@@ -305,27 +306,12 @@ export async function handleWeatherAdvice(
       data: responseData,
     };
     return jsonResponse(response);
-  } catch (err) {
-    console.error('[/api/weather/advice] Gemini callback error caught:', err);
-    const responseData: WeatherAdviceResponse = {
-      location: weather.location,
-      weather,
-      advice: `Current conditions indicate ${weather.current.temperature_c}°C with ${weather.current.condition} and ${weather.current.humidity_pct}% humidity. Ensure bund drainage lines are clear.`,
-      risks: ['Humidity-induced foliar dampness', 'Surface runoff on sloped plots'],
-      preventiveActions: [
-        'Clear field drainage channels',
-        'Secure mulch cover and nursery beds',
-        'Defer chemical spraying if heavy wind or rain is expected',
-      ],
-      safetyNote:
-        'Weather predictions and agronomic advisories are advisory estimates. Check regional IMD bulletins before making high-stakes chemical or harvesting commitments.',
-    };
-
-    const response: ApiResponse<WeatherAdviceResponse> = {
-      success: true,
-      data: responseData,
-    };
-    return jsonResponse(response);
+  } catch (err: any) {
+    console.error('[/api/weather/advice] Gemini error caught:', err);
+    if (err?.status === 429 || err?.message?.includes('busy') || err?.message?.includes('quota')) {
+      return errorResponse('AI is busy. Please wait a moment.', 'RATE_LIMITED', 429);
+    }
+    return errorResponse('AI is temporarily unavailable.', 'GEMINI_UNAVAILABLE', 503);
   }
 }
 

@@ -195,7 +195,8 @@ export interface MarketplaceListing {
   available: boolean
   postedAt: string
   tags: string[]
-  _demo: true
+  imageUrl?: string
+  _demo?: boolean
 }
 
 export interface MarketplaceResponse {
@@ -292,17 +293,17 @@ export function setSessionToken(token: string | null) {
   if (typeof window !== 'undefined') {
     if (token) {
       sessionStorage.setItem(TOKEN_KEY, token)
-      localStorage.setItem(TOKEN_KEY, token)
     } else {
       sessionStorage.removeItem(TOKEN_KEY)
-      localStorage.removeItem(TOKEN_KEY)
     }
+    // Remove legacy token from localStorage
+    localStorage.removeItem(TOKEN_KEY)
   }
 }
 
 export function getSessionToken(): string | null {
   if (typeof window !== 'undefined') {
-    return sessionStorage.getItem(TOKEN_KEY) || localStorage.getItem(TOKEN_KEY)
+    return sessionStorage.getItem(TOKEN_KEY)
   }
   return null
 }
@@ -341,14 +342,29 @@ async function apiFetch<T>(
 
   try {
     res = await fetch(url, {
+      credentials: 'include',
       ...options,
       headers: customHeaders,
     })
-  } catch {
+  } catch (err) {
     throw new ApiError(
       'NETWORK_ERROR',
-      'Unable to connect to Bhoomi Mithra AI. Please check your connection.',
+      'Unable to reach Bhoomi Mithra server.',
     )
+  }
+
+  // Handle distinct HTTP error statuses directly
+  if (res.status === 401) {
+    throw new ApiError('HTTP_401', 'Please sign in again.')
+  }
+  if (res.status === 429) {
+    throw new ApiError('HTTP_429', 'AI is busy. Please try again shortly.')
+  }
+  if (res.status === 503) {
+    throw new ApiError('HTTP_503', 'AI service is temporarily unavailable.')
+  }
+  if (res.status >= 500) {
+    throw new ApiError('HTTP_500', 'Bhoomi Mithra server error. Please try again.')
   }
 
   // Handle non-JSON (e.g. 502 HTML error pages from Cloudflare)
@@ -363,10 +379,16 @@ async function apiFetch<T>(
   const json = (await res.json()) as { success: boolean; data?: T; error?: string; code?: string }
 
   if (!json.success) {
-    throw new ApiError(
-      json.code ?? 'API_ERROR',
-      json.error ?? 'An unexpected error occurred.',
-    )
+    const code = json.code ?? 'API_ERROR'
+    let msg = json.error ?? 'An unexpected error occurred.'
+    if (code === 'GEMINI_UNAVAILABLE') {
+      msg = 'AI is temporarily unavailable.'
+    } else if (code === 'RATE_LIMITED') {
+      msg = 'AI is busy. Please wait a moment.'
+    } else if (code === 'UNAUTHORIZED') {
+      msg = 'Please sign in again.'
+    }
+    throw new ApiError(code, msg)
   }
 
   return json.data as T

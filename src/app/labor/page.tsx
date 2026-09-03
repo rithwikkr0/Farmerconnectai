@@ -10,8 +10,8 @@ import type { LaborWorker } from '@/lib/api'
 
 export default function FarmLaborMarketplacePage() {
   const { context, user, farmProfile } = useFarmContext()
-  const [location, setLocation] = useState(context.location || 'Mandya, Karnataka')
-  const [radius, setRadius] = useState<number>(10)
+  const [location, setLocation] = useState(farmProfile?.location || context.location || 'Anekal, Bengaluru Urban')
+  const [radius, setRadius] = useState<number>(15)
   const [skillFilter, setSkillFilter] = useState('all')
   const [workers, setWorkers] = useState<LaborWorker[]>([])
   const [loading, setLoading] = useState(false)
@@ -20,8 +20,8 @@ export default function FarmLaborMarketplacePage() {
   const fetchLabor = () => {
     setLoading(true)
     getNearbyLabor({
-      lat: 12.52,
-      lng: 76.89,
+      lat: 12.7109,
+      lng: 77.6946,
       radius,
       skill: skillFilter === 'all' ? undefined : skillFilter,
     })
@@ -40,17 +40,17 @@ export default function FarmLaborMarketplacePage() {
     setBookingId(worker.id)
     try {
       await createLaborRequest({
-        farmerName: user?.full_name || context.farmerName || 'Ramesh Gowda',
-        farmerPhone: user?.mobile || context.farmerPhone || '+91 98450 12345',
+        farmerName: user?.full_name || context.farmerName || 'Farmer',
+        farmerPhone: user?.mobile || context.farmerPhone || '+91 99000 00000',
         location: farmProfile?.location || location,
         skill: worker.skills[0] || 'General Farm Labor',
         startDate: 'Tomorrow',
         durationDays: 1,
-        description: `Emergency drainage furrow trenching & crop harvesting for ${worker.name}`,
+        description: `Agricultural assistance: ${worker.skills.join(', ')}`,
       })
-      toast.success(`Booking request confirmed with ${worker.name}! Stored in Cloudflare D1.`)
+      toast.success(`Request submitted for ${worker.name}! Stored in Cloudflare D1.`)
     } catch {
-      toast.success(`Booking request dispatched to ${worker.name}`)
+      toast.success(`Request submitted for ${worker.name}`)
     } finally {
       setBookingId(null)
     }
@@ -74,8 +74,8 @@ export default function FarmLaborMarketplacePage() {
           </div>
 
           <div className="flex items-center gap-3">
-            <span className="px-3 py-1 rounded-full bg-surface-container-high border border-primary/20 font-label-code-sm text-xs text-primary font-bold">
-              DEMO DATA
+            <span className="px-3 py-1 rounded-full bg-surface-container-high border border-secondary/30 font-label-code-sm text-xs text-secondary font-bold">
+              DEMO PROFILE
             </span>
           </div>
         </div>
@@ -85,11 +85,13 @@ export default function FarmLaborMarketplacePage() {
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-2 overflow-x-auto w-full sm:w-auto pb-1 sm:pb-0">
               {[
-                { id: 'all', label: 'All Specialists' },
-                { id: 'Trenching', label: 'Trenching & Drainage' },
-                { id: 'Harvesting', label: 'Harvesting' },
-                { id: 'Spraying', label: 'Spraying' },
-                { id: 'Weeding', label: 'Weeding' },
+                { id: 'all', label: 'All Workers' },
+                { id: 'harvesting', label: 'Vegetable Harvesting' },
+                { id: 'transplanting', label: 'Paddy Transplanting' },
+                { id: 'weeding', label: 'Weeding' },
+                { id: 'spraying', label: 'Spraying' },
+                { id: 'irrigation', label: 'Drip & Irrigation' },
+                { id: 'tractor', label: 'Tractor Assistance' },
               ].map((pill) => (
                 <button
                   key={pill.id}
@@ -150,7 +152,12 @@ export default function FarmLaborMarketplacePage() {
                         <span className="material-symbols-outlined text-2xl">groups</span>
                       </div>
                       <div className="flex flex-col">
-                        <h3 className="font-headline-sm text-base font-bold text-on-surface">{worker.name}</h3>
+                        <div className="flex items-center gap-2">
+                          <h3 className="font-headline-sm text-base font-bold text-on-surface">{worker.name}</h3>
+                          <span className="px-2 py-0.5 rounded bg-surface-container-high text-[9px] font-label-code-sm uppercase font-bold text-secondary border border-secondary/20">
+                            DEMO PROFILE
+                          </span>
+                        </div>
                         <span className="font-label-code-sm text-[10px] text-secondary">
                           {worker.location} • {worker.distanceKm} km
                         </span>
@@ -196,8 +203,8 @@ export default function FarmLaborMarketplacePage() {
                     disabled={bookingId === worker.id}
                     className="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-secondary-container to-secondary text-on-secondary font-headline-sm text-xs font-bold uppercase tracking-wider shadow-sm hover:scale-[1.01] transition-all flex items-center justify-center gap-2 disabled:opacity-50"
                   >
-                    <span className="material-symbols-outlined text-base">check</span>
-                    <span>{bookingId === worker.id ? 'Dispatching...' : 'Book Team Now'}</span>
+                    <span className="material-symbols-outlined text-base">engineering</span>
+                    <span>{bookingId === worker.id ? 'Submitting...' : 'Request Worker'}</span>
                   </button>
 
                   <button

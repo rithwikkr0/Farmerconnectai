@@ -9,11 +9,11 @@ import type { WeatherAdviceResponse } from '@/lib/api'
 
 export default function WeatherProtectionCenterPage() {
   const { context } = useFarmContext()
-  const [crop, setCrop] = useState(context.primaryCrop || 'Tomato (Arka Rakshak)')
+  const [crop, setCrop] = useState(context.primaryCrop || 'Tomato')
   const [advice, setAdvice] = useState<WeatherAdviceResponse | null>(null)
   const [loading, setLoading] = useState(false)
 
-  const farmLocation = context.location || 'Mandya, Karnataka'
+  const farmLocation = context.location || 'Anekal, Bengaluru Urban, Karnataka'
 
   const handleAssessRisk = async () => {
     setLoading(true)

@@ -102,35 +102,12 @@ export async function handleCropRecommend(
       data: result,
     };
     return jsonResponse(response);
-  } catch (err) {
-    console.error('[/api/crops/recommend] Gemini callback error caught:', err);
-    return jsonResponse({
-      success: true,
-      data: {
-        location: req.location || 'Local Agro-Climatic Zone',
-        season: req.season || 'Current Season',
-        recommendations: [
-          {
-            cropName: 'Finger Millet (Ragi)',
-            suitabilityScore: 88,
-            suitabilityLabel: 'excellent',
-            reasons: ['Drought-resilient', 'Optimal for regional red/loamy soils', 'Steady local APMC demand'],
-            waterRequirement: 'moderate',
-            majorRisks: ['Blast disease during high humidity', 'Weed competition in early stage'],
-            suggestedActions: [
-              'Treat seeds with Azospirillum biofertilizer prior to sowing',
-              'Ensure adequate field drainage lines',
-            ],
-            estimatedYield: '1.2 - 1.6 tonnes/acre',
-            estimatedProfit: '₹25,000 - ₹40,000/acre',
-          },
-        ],
-        generalAdvice:
-          'Contingency advisory active. Verify soil nutrient profile and water availability with your block extension officer.',
-        safetyNote:
-          'Verify recommendations with your local Krishi Vigyan Kendra (KVK) or agricultural extension officer.',
-      },
-    });
+  } catch (err: any) {
+    console.error('[/api/crops/recommend] Gemini error caught:', err);
+    if (err?.status === 429 || err?.message?.includes('busy') || err?.message?.includes('quota')) {
+      return errorResponse('AI is busy. Please wait a moment.', 'RATE_LIMITED', 429);
+    }
+    return errorResponse('AI is temporarily unavailable.', 'GEMINI_UNAVAILABLE', 503);
   }
 }
 

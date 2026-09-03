@@ -19,18 +19,17 @@ import {
 const STORAGE_KEY = 'bhoomimithra_context'
 
 const DEFAULT_CONTEXT: FarmContext = {
-  farmerName: 'Ramesh Gowda',
-  farmerPhone: '+91 98450 11223',
-  location: 'Hulivana, Mandya, Karnataka',
-  district: 'Mandya',
+  farmerName: '',
+  farmerPhone: '',
+  location: 'Anekal, Bengaluru Urban, Karnataka',
+  district: 'Bengaluru Urban',
   state: 'Karnataka',
   landSizeAcres: 3.5,
   soilType: 'Red sandy loam',
   waterAvailability: 'moderate',
-  primaryCrop: 'Finger Millet (Ragi)',
+  primaryCrop: 'Tomato',
   season: 'Kharif',
   goal: 'profit',
-  livestock: '2 Indigenous Hallikar Dairy Cattle',
 }
 
 function loadFromStorage(): FarmContext {
@@ -90,7 +89,7 @@ export function useFarmContext() {
   }, [])
 
   useEffect(() => {
-    setContextState(loadFromStorage())
+    // Start fresh from DEFAULT_CONTEXT — D1 will override if authenticated
     refreshAuth()
   }, [refreshAuth])
 

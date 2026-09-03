@@ -15,12 +15,12 @@ export default function CropIntelligencePage() {
   const [loading, setLoading] = useState(false)
   const [hasAnalyzed, setHasAnalyzed] = useState(false)
 
-  const farmLocation = farmProfile?.location || context.location || 'Mandya, Karnataka'
+  const farmLocation = farmProfile?.location || context.location || 'Anekal, Bengaluru Urban, Karnataka'
   const soilType = farmProfile?.soil_type || context.soilType || 'Red sandy loam'
   const landSize = farmProfile?.land_size_acres || context.landSizeAcres || 3.5
   const water = farmProfile?.water_availability || context.waterAvailability || 'moderate'
   const season = farmProfile?.season || context.season || 'Kharif'
-  const currentCrop = farmProfile?.current_crop || context.primaryCrop || 'Finger Millet (Ragi)'
+  const currentCrop = farmProfile?.current_crop || context.primaryCrop || 'Tomato'
 
   const handleAnalyzeFarm = async () => {
     setLoading(true)

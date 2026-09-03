@@ -260,6 +260,7 @@ export interface MarketplaceListing {
   available: boolean;
   postedAt: string; // ISO 8601
   tags: string[];
+  imageUrl?: string;
   _demo?: boolean;
 }
 

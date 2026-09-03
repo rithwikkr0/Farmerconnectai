@@ -7,11 +7,11 @@ import { useFarmContext } from '@/hooks/use-farm-context'
 import { getWeather } from '@/lib/api'
 import type { WeatherData } from '@/lib/api'
 
-const QUICK_DISTRICTS = ['Mandya', 'Mysuru', 'Bengaluru', 'Hassan', 'Tumakuru']
+const QUICK_DISTRICTS = ['Anekal', 'Bengaluru Urban', 'Hosur', 'Kanakapura', 'Ramanagara']
 
 export default function WeatherIntelligencePage() {
   const { context, farmProfile } = useFarmContext()
-  const [location, setLocation] = useState(farmProfile?.location || context.location || 'Mandya, Karnataka')
+  const [location, setLocation] = useState(farmProfile?.location || context.location || 'Anekal, Bengaluru Urban, Karnataka')
   const [searchInput, setSearchInput] = useState('')
   const [weather, setWeather] = useState<WeatherData | null>(null)
   const [loading, setLoading] = useState(false)
@@ -69,7 +69,7 @@ export default function WeatherIntelligencePage() {
                   type="text"
                   value={searchInput}
                   onChange={(e) => setSearchInput(e.target.value)}
-                  placeholder="Search district (e.g. Mandya)..."
+                  placeholder="Search district (e.g. Anekal)..."
                   className="h-10 pl-9 pr-3 rounded-xl bg-surface-container/70 border border-outline-variant/30 text-white font-body-sm text-xs focus:outline-none focus:border-secondary w-52 sm:w-64"
                 />
               </div>
@@ -83,27 +83,27 @@ export default function WeatherIntelligencePage() {
 
             <Link
               href="/weather-protection"
-              className="px-4 py-2 rounded-xl bg-surface-container-high hover:bg-surface-container-highest border border-outline-variant/30 text-white font-headline-sm text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-2"
+              className="h-10 px-4 rounded-xl bg-surface-container-high border border-outline-variant/30 hover:border-secondary text-on-surface font-label-code-sm text-xs uppercase font-bold flex items-center gap-2 transition-all shrink-0"
             >
-              <span className="material-symbols-outlined text-base text-primary">security</span>
-              <span>Protection Protocols</span>
+              <span className="material-symbols-outlined text-secondary text-base">shield</span>
+              <span>Crop Advisory</span>
             </Link>
           </div>
         </div>
 
-        {/* Quick District Selector */}
-        <div className="flex items-center gap-2 flex-wrap">
-          <span className="text-xs font-label-code-sm text-on-surface-variant uppercase font-medium mr-1">
-            Quick Districts:
+        {/* Quick District Selector Pills */}
+        <div className="flex items-center gap-2 overflow-x-auto pb-1">
+          <span className="font-label-code-sm text-xs text-on-surface-variant uppercase tracking-wider shrink-0">
+            Quick Stations:
           </span>
           {QUICK_DISTRICTS.map((d) => (
             <button
               key={d}
               onClick={() => setLocation(`${d}, Karnataka`)}
-              className={`px-3 py-1 rounded-full text-xs font-label-code-sm uppercase transition-all ${
-                location.includes(d)
+              className={`px-3 py-1 rounded-full text-xs font-label-code-sm transition-all shrink-0 ${
+                location.startsWith(d)
                   ? 'bg-secondary text-surface font-bold shadow-sm'
-                  : 'bg-surface-container hover:bg-surface-container-high text-on-surface border border-outline-variant/30'
+                  : 'bg-surface-container/60 border border-outline-variant/20 text-on-surface-variant hover:text-white'
               }`}
             >
               {d}
@@ -142,10 +142,10 @@ export default function WeatherIntelligencePage() {
               {error}
             </p>
             <button
-              onClick={() => fetchWeatherData('Mandya, Karnataka')}
+              onClick={() => fetchWeatherData('Anekal, Bengaluru Urban, Karnataka')}
               className="px-4 py-2 rounded-xl bg-surface-container-high hover:bg-surface-container-highest text-secondary text-xs font-label-code-sm uppercase font-bold"
             >
-              Reload Mandya Station
+              Reload Anekal Station
             </button>
           </div>
         )}

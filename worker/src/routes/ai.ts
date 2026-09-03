@@ -66,26 +66,12 @@ export async function handleAI(
 
     const response: ApiResponse<AIResponse> = { success: true, data: result };
     return jsonResponse(response);
-  } catch (err) {
-    console.error('[/api/ai] Gemini callback error caught:', err);
-    return jsonResponse({
-      success: true,
-      data: {
-        task: req.task,
-        recommendation:
-          'Bhoomi Mithra AI is operating in resilient fallback mode. Please consult your local Krishi Vigyan Kendra agronomist for critical chemical applications.',
-        sections: [
-          {
-            title: 'General Field Recommendation',
-            content:
-              'Maintain standard water and drainage management. Inspect soil moisture before subsequent irrigation cycles.',
-            priority: 'medium',
-          },
-        ],
-        safetyNote:
-          'Operational Notice: AI advisory provided in high-reliability contingency mode.',
-      },
-    });
+  } catch (err: any) {
+    console.error('[/api/ai] Gemini error caught:', err);
+    if (err?.status === 429 || err?.message?.includes('busy') || err?.message?.includes('quota')) {
+      return errorResponse('AI is busy. Please wait a moment.', 'RATE_LIMITED', 429);
+    }
+    return errorResponse('AI is temporarily unavailable.', 'GEMINI_UNAVAILABLE', 503);
   }
 }
 

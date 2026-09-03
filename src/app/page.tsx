@@ -58,11 +58,13 @@ export default function SplashPage() {
           <div className="w-full relative flex flex-col items-center text-center p-8 sm:p-12 rounded-3xl bg-surface-container-low/60 backdrop-blur-2xl border border-primary/25 shadow-[0_24px_50px_rgba(5,3,10,0.85)]">
             {/* Holographic Glowing Icon */}
             <div className="relative mb-6 flex items-center justify-center">
-              <div className="absolute inset-0 rounded-full bg-primary-container/40 blur-2xl animate-pulse" />
-              <div className="relative w-16 h-16 rounded-2xl bg-surface-container-high/90 border border-primary/30 flex items-center justify-center shadow-lg">
-                <span className="material-symbols-outlined text-primary text-3xl font-bold filter drop-shadow-[0_0_12px_rgba(198,192,255,0.9)]">
-                  eco
-                </span>
+              <div className="absolute -inset-2 rounded-full bg-primary/30 blur-2xl animate-pulse" />
+              <div className="relative w-24 h-24 rounded-3xl bg-surface-container-high/90 border border-primary/40 flex items-center justify-center shadow-2xl overflow-hidden p-1.5 backdrop-blur-xl">
+                <img
+                  src="/logo.png"
+                  alt="Bhoomi Mithra Logo"
+                  className="w-full h-full object-cover rounded-2xl filter drop-shadow-[0_0_16px_rgba(112,96,249,0.8)]"
+                />
               </div>
             </div>
 

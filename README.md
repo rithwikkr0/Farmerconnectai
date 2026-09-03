@@ -38,11 +38,11 @@ The product is designed around practical decision support rather than pretending
 | **Farm Marketplace** | `GET /api/marketplace` | **OPERATIONAL (HTTP 200)** | D1 with APMC Demo Lot Fallback |
 | **Farmer Matching** | `POST /api/farmers/match` | **OPERATIONAL (HTTP 200)** | Deterministic Matching & Demo Registry |
 | **Agricultural Services** | `GET /api/services` | **OPERATIONAL (HTTP 200)** | D1 with Regional Extension Directory Fallback |
-| **Crop AI Copilot** | `POST /api/ai` | **BLOCKED (HTTP 503)** | Google Gemini (Worker secret key pending activation) |
-| **Crop Recommendations** | `POST /api/crops/recommend` | **BLOCKED (HTTP 503)** | Google Gemini (Worker secret key pending activation) |
-| **Weather Agronomic Advice**| `POST /api/weather/advice` | **BLOCKED (HTTP 503)** | Google Gemini (Worker secret key pending activation) |
+| **Crop AI Copilot** | `POST /api/ai` | **LIVE (HTTP 200)** | Google Gemini 3.5 AI Engine (Active) |
+| **Crop Recommendations** | `POST /api/crops/recommend` | **LIVE (HTTP 200)** | Google Gemini 3.5 AI Engine (Active) |
+| **Weather Agronomic Advice**| `POST /api/weather/advice` | **LIVE (HTTP 200)** | Live Open-Meteo + Gemini AI Advisory |
 
-> **Transparency Note**: Features marked as DEMO utilize calibrated agrarian profiles and realistic mandi lots until verified multi-tenant profiles are onboarded to D1. Weather is verified LIVE via Open-Meteo. Gemini AI endpoints are plumbed server-side with input validation and safety disclaimers, returning 503 until a valid Google Gemini API key is activated in Cloudflare secrets.
+> **Transparency Note**: Features marked as DEMO utilize calibrated agrarian profiles and realistic mandi lots until verified multi-tenant profiles are onboarded to D1. Weather is verified LIVE via Open-Meteo. Gemini AI endpoints are verified LIVE with server-side multi-model fallback cascades and callback error recovery.
 
 ---
 

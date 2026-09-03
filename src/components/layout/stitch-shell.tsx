@@ -91,8 +91,8 @@ export function StitchShell({ children }: { children: React.ReactNode }) {
           {/* Logo & Close button */}
           <div className="px-2 flex items-center justify-between">
             <Link href="/" className="flex items-center gap-3 group">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary via-primary-container to-secondary flex items-center justify-center shadow-[0_0_16px_rgba(112,96,249,0.5)] shrink-0">
-                <span className="material-symbols-outlined text-surface text-2xl font-bold">eco</span>
+              <div className="w-10 h-10 rounded-xl bg-surface-container-high/90 border border-primary/30 flex items-center justify-center shadow-[0_0_16px_rgba(112,96,249,0.5)] shrink-0 overflow-hidden p-0.5">
+                <img src="/logo.png" alt="Bhoomi Mithra" className="w-full h-full object-cover rounded-lg" />
               </div>
               <div className="flex flex-col min-w-0">
                 <span className="font-headline-sm text-sm text-on-surface tracking-wider uppercase font-bold truncate">
@@ -215,7 +215,8 @@ export function StitchShell({ children }: { children: React.ReactNode }) {
               </span>
             </div>
 
-            <div className="hidden xl:flex items-center gap-2 text-xs">
+            <div className="hidden xl:flex items-center gap-2.5 text-xs">
+              <img src="/icon.png" alt="Bhoomi Mithra" className="w-5 h-5 rounded-md object-cover border border-primary/30" />
               <span className="font-headline-sm font-bold text-on-surface">Bhoomi Mithra</span>
               <span className="text-secondary font-medium font-body-sm">ಬೆಳಕಿನ ಮನೆ</span>
             </div>

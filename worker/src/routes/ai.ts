@@ -43,11 +43,19 @@ export async function handleAI(
       400
     );
   }
-  if (!req.context || typeof req.context !== 'object') {
+  if (!req.context || typeof req.context !== 'object' || Array.isArray(req.context)) {
     return errorResponse(
-      'Missing or invalid field: context (must be an object)',
+      'Missing or invalid field: context (must be a key-value object)',
       'MISSING_FIELD',
       400
+    );
+  }
+
+  if (JSON.stringify(req.context).length > 20000) {
+    return errorResponse(
+      'Context payload exceeds allowable size (max 20KB)',
+      'PAYLOAD_TOO_LARGE',
+      413
     );
   }
 

@@ -62,9 +62,9 @@ export async function handleLaborNearby(
   const lng = parseFloat(lngStr);
   const radius = parseFloat(radiusStr);
 
-  if (isNaN(lat) || isNaN(lng)) {
+  if (isNaN(lat) || isNaN(lng) || lat < -90 || lat > 90 || lng < -180 || lng > 180) {
     return errorResponse(
-      'lat and lng must be valid numbers',
+      'lat and lng must be valid numbers within geographic range (-90..90, -180..180)',
       'INVALID_PARAMS',
       400
     );
@@ -133,6 +133,22 @@ export async function handleLaborRequest(
       'MISSING_FIELDS',
       400
     );
+  }
+
+  if (req.farmerName && req.farmerName.length > 100) {
+    return errorResponse('farmerName cannot exceed 100 characters', 'PARAM_TOO_LONG', 400);
+  }
+  if (req.farmerPhone && req.farmerPhone.length > 25) {
+    return errorResponse('farmerPhone cannot exceed 25 characters', 'PARAM_TOO_LONG', 400);
+  }
+  if (req.location && req.location.length > 150) {
+    return errorResponse('location cannot exceed 150 characters', 'PARAM_TOO_LONG', 400);
+  }
+  if (req.skill && req.skill.length > 100) {
+    return errorResponse('skill cannot exceed 100 characters', 'PARAM_TOO_LONG', 400);
+  }
+  if (req.durationDays && req.durationDays > 90) {
+    return errorResponse('durationDays cannot exceed 90 days per request', 'INVALID_RANGE', 400);
   }
 
   // Validate date format

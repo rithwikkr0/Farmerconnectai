@@ -66,9 +66,13 @@ export interface AISection {
 // ─── Weather ──────────────────────────────────────────────────────────────────
 
 export interface WeatherData {
-  /** Clearly labelled so UI can show a "demo" badge */
-  _demo: true;
+  /** Explicit flag indicating whether data is demo or real */
+  _demo?: boolean;
+  status: 'LIVE' | 'DEMO';
+  source: string;
   location: string;
+  latitude?: number;
+  longitude?: number;
   current: {
     temperature_c: number;
     humidity_pct: number;

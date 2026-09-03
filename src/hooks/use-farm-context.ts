@@ -64,6 +64,8 @@ export function useFarmContext() {
       if (context.season) out['season'] = context.season
       if (context.primaryCrop) out['primaryCrop'] = context.primaryCrop
       if (context.livestock) out['livestock'] = context.livestock
+      if (context.goal) out['goal'] = context.goal
+      if (context.budget_inr) out['budget_inr'] = context.budget_inr
       if (context.additionalNotes) out['additionalNotes'] = context.additionalNotes
       return { ...out, ...extra }
     },

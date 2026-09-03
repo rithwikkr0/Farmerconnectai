@@ -85,7 +85,7 @@ export default function BusinessOpportunitiesPage() {
             <div className="flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-secondary animate-pulse" />
               <span className="font-label-code-sm text-xs text-secondary uppercase font-bold tracking-wider">
-                Enterprise &amp; Agribusiness Exchange // Verified Deals
+                Enterprise &amp; Agribusiness Exchange // Demo &amp; Informational Desk
               </span>
             </div>
             <h1 className="font-headline-lg text-2xl sm:text-3xl font-bold text-on-surface tracking-tight">
@@ -95,9 +95,17 @@ export default function BusinessOpportunitiesPage() {
 
           <div className="flex items-center gap-2">
             <span className="px-3 py-1 rounded-full bg-surface-container-high border border-secondary/20 font-label-code-sm text-xs text-secondary font-bold">
-              CORPORATE DECK
+              PILOT / DEMO DESK
             </span>
           </div>
+        </div>
+
+        {/* Transparency Notice Banner */}
+        <div className="p-3.5 rounded-2xl bg-surface-container-high/60 border border-secondary/20 flex items-start gap-3 text-xs text-on-surface-variant">
+          <span className="material-symbols-outlined text-secondary text-base shrink-0 mt-0.5">info</span>
+          <p className="leading-relaxed">
+            <strong className="text-on-surface font-semibold">Transparency Notice:</strong> Contract farming lots and export tenders shown below are illustrative demonstration templates for agribusiness partnerships. Government subsidy entries represent informational scheme guides based on public PMKSY guidelines. Direct commercial onboarding is in closed pilot.
+          </p>
         </div>
 
         {/* Filter Pills */}
@@ -135,9 +143,14 @@ export default function BusinessOpportunitiesPage() {
               <div className="flex flex-col gap-3">
                 <div className="flex items-start justify-between">
                   <div className="flex flex-col">
-                    <span className="font-label-code-sm text-[10px] text-secondary uppercase font-bold tracking-wider">
-                      {deal.company}
-                    </span>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="font-label-code-sm text-[10px] text-secondary uppercase font-bold tracking-wider">
+                        {deal.company}
+                      </span>
+                      <span className="px-2 py-0.5 rounded-md bg-surface-container-high text-[9px] font-label-code-sm uppercase font-bold text-on-surface-variant border border-outline-variant/20">
+                        {deal.type === 'subsidy' ? 'Informational Scheme' : 'Demo Contract'}
+                      </span>
+                    </div>
                     <h3 className="font-headline-sm text-lg font-bold text-on-surface mt-1">{deal.title}</h3>
                   </div>
 

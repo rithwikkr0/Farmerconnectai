@@ -47,11 +47,17 @@ export async function handleMarketplace(
   const minPrice = minPriceStr != null ? parseFloat(minPriceStr) : undefined;
   const maxPrice = maxPriceStr != null ? parseFloat(maxPriceStr) : undefined;
 
-  if (minPrice !== undefined && isNaN(minPrice)) {
-    return errorResponse('minPrice must be a number', 'INVALID_PARAMS', 400);
+  if (minPrice !== undefined && (isNaN(minPrice) || minPrice < 0)) {
+    return errorResponse('minPrice must be a non-negative number', 'INVALID_PARAMS', 400);
   }
-  if (maxPrice !== undefined && isNaN(maxPrice)) {
-    return errorResponse('maxPrice must be a number', 'INVALID_PARAMS', 400);
+  if (maxPrice !== undefined && (isNaN(maxPrice) || maxPrice < 0)) {
+    return errorResponse('maxPrice must be a non-negative number', 'INVALID_PARAMS', 400);
+  }
+  if (minPrice !== undefined && maxPrice !== undefined && minPrice > maxPrice) {
+    return errorResponse('minPrice cannot exceed maxPrice', 'INVALID_PARAMS', 400);
+  }
+  if (location && location.length > 100) {
+    return errorResponse('location cannot exceed 100 characters', 'PARAM_TOO_LONG', 400);
   }
 
   // ── Filter listings ───────────────────────────────────────────────────────

@@ -51,8 +51,12 @@ export interface WeatherForecastDay {
 }
 
 export interface WeatherData {
-  _demo: true
+  _demo?: boolean
+  status?: 'LIVE' | 'DEMO'
+  source?: string
   location: string
+  latitude?: number
+  longitude?: number
   current: WeatherCurrent
   forecast: WeatherForecastDay[]
   fetched_at: string
@@ -211,6 +215,8 @@ export interface FarmContext {
   season?: string
   primaryCrop?: string
   livestock?: string
+  goal?: 'subsistence' | 'profit' | 'export' | 'mixed'
+  budget_inr?: number
   additionalNotes?: string
 }
 

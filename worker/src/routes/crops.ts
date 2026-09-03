@@ -47,6 +47,30 @@ export async function handleCropRecommend(
     );
   }
 
+  if (req.landSize! > 100000) {
+    return errorResponse(
+      'landSize must be 100,000 acres or fewer',
+      'INVALID_RANGE',
+      400
+    );
+  }
+
+  if (req.location!.length > 150) {
+    return errorResponse(
+      'location cannot exceed 150 characters',
+      'PARAM_TOO_LONG',
+      400
+    );
+  }
+
+  if (req.soil!.length > 100) {
+    return errorResponse(
+      'soil cannot exceed 100 characters',
+      'PARAM_TOO_LONG',
+      400
+    );
+  }
+
   if (!VALID_WATER_AVAILABILITY.has(req.waterAvailability!)) {
     return errorResponse(
       'waterAvailability must be one of: low, moderate, high',

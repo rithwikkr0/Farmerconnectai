@@ -94,13 +94,28 @@ export default function WeatherIntelligencePage() {
           </form>
         </div>
 
-        {/* Demo Notice Banner */}
-        {weather?._demo && (
+        {/* Dynamic Status Banner: LIVE or DEMO */}
+        {weather?.status === 'LIVE' ? (
+          <div className="p-3 rounded-2xl bg-primary-container/20 border border-primary/30 flex items-center justify-between text-xs text-on-surface shadow-sm">
+            <div className="flex items-center gap-2">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75" />
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-primary" />
+              </span>
+              <span>
+                <strong>LIVE METEOROLOGY:</strong> Real-time atmospheric telemetry from {weather.source || 'Open-Meteo Live API'}.
+              </span>
+            </div>
+            <span className="font-label-code-sm text-[10px] bg-primary text-on-primary px-2.5 py-0.5 rounded-full uppercase font-bold tracking-wider">
+              LIVE
+            </span>
+          </div>
+        ) : (
           <div className="p-3 rounded-2xl bg-surface-container-high/60 border border-primary/20 flex items-center justify-between text-xs text-on-surface-variant">
             <div className="flex items-center gap-2">
               <span className="material-symbols-outlined text-primary text-base">info</span>
               <span>
-                <strong>DEMO DATA:</strong> Weather is currently served from Bhoomi Mithra calibrated agrarian telemetry for demonstration purposes.
+                <strong>DEMO DATA:</strong> {weather?.source || 'Weather is currently served from Bhoomi Mithra calibrated agrarian telemetry for demonstration purposes.'}
               </span>
             </div>
             <span className="font-label-code-sm text-[10px] text-primary uppercase font-bold">Demo Mode</span>

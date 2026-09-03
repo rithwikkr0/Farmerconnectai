@@ -94,7 +94,24 @@ export async function handleFarmerMatch(
     );
   }
 
-  const maxResults = Math.min(req.maxResults ?? 5, 10);
+  if (req.crop && req.crop.length > 150) {
+    return errorResponse('crop cannot exceed 150 characters', 'PARAM_TOO_LONG', 400);
+  }
+  if (req.problem && req.problem.length > 300) {
+    return errorResponse('problem cannot exceed 300 characters', 'PARAM_TOO_LONG', 400);
+  }
+  if (req.location && req.location.length > 150) {
+    return errorResponse('location cannot exceed 150 characters', 'PARAM_TOO_LONG', 400);
+  }
+
+  if (req.latitude != null && (isNaN(req.latitude) || req.latitude < -90 || req.latitude > 90)) {
+    return errorResponse('latitude must be between -90 and 90', 'INVALID_PARAMS', 400);
+  }
+  if (req.longitude != null && (isNaN(req.longitude) || req.longitude < -180 || req.longitude > 180)) {
+    return errorResponse('longitude must be between -180 and 180', 'INVALID_PARAMS', 400);
+  }
+
+  const maxResults = Math.min(Math.max(req.maxResults ?? 5, 1), 10);
 
   // ── Step 1: Deterministic scoring ─────────────────────────────────────────
   const scored = DEMO_FARMERS

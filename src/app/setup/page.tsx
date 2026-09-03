@@ -118,7 +118,7 @@ export default function FarmSetupPage() {
                 Your farm, <span className="text-primary font-bold">understood.</span>
               </h1>
               <p className="font-body-md text-body-md text-on-surface-variant max-w-xl">
-                Configure your field parameters so FarmConnect AI initializes real-time canopy modelling, micro-climates, and predictive yield calculus.
+                Configure your field parameters so Bhoomi Mithra AI initializes real-time canopy modelling, micro-climates, and predictive yield calculus.
               </p>
             </div>
 

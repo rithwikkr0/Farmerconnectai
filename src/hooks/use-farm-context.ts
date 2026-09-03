@@ -9,14 +9,16 @@
 import { useState, useEffect, useCallback } from 'react'
 import type { FarmContext } from '@/lib/api'
 
-const STORAGE_KEY = 'farmconnect_context'
+const STORAGE_KEY = 'bhoomimithra_context'
 
 const DEFAULT_CONTEXT: FarmContext = {}
 
 function loadFromStorage(): FarmContext {
   if (typeof window === 'undefined') return DEFAULT_CONTEXT
   try {
-    const raw = localStorage.getItem(STORAGE_KEY)
+    const raw =
+      localStorage.getItem(STORAGE_KEY) ||
+      localStorage.getItem('farmconnect_context')
     return raw ? (JSON.parse(raw) as FarmContext) : DEFAULT_CONTEXT
   } catch {
     return DEFAULT_CONTEXT

@@ -1,5 +1,5 @@
 /**
- * FarmConnect AI — Central Frontend API Client
+ * Bhoomi Mithra — Central Frontend API Client
  *
  * All communication with the Cloudflare Worker goes through this module.
  * Raw fetch() calls must NOT be scattered across components.
@@ -244,7 +244,7 @@ async function apiFetch<T>(
   } catch {
     throw new ApiError(
       'NETWORK_ERROR',
-      'Unable to connect to FarmConnect AI. Please check your connection.',
+      'Unable to connect to Bhoomi Mithra AI. Please check your connection.',
     )
   }
 

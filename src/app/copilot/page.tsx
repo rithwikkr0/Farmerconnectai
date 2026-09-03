@@ -83,7 +83,7 @@ export default function FarmAICopilotPage() {
             {/* Typography & AI Status */}
             <div className="flex flex-col items-center text-center mt-1 max-w-2xl">
               <h1 className="font-headline-lg text-2xl sm:text-3xl font-bold text-on-surface tracking-tight">
-                Farm AI Copilot
+                Bhoomi Mithra AI Copilot
               </h1>
               <p className="font-body-md text-sm text-on-surface-variant mt-1">
                 Conversational intelligence layer connecting soil parameters, hyper-local weather, labor force, and market arbitrage.
@@ -342,7 +342,7 @@ export default function FarmAICopilotPage() {
                         </div>
                         <div className="flex flex-col">
                           <span className="font-label-code-sm text-[10px] text-primary uppercase font-bold">
-                            Farm AI Synthesis
+                            Bhoomi Mithra AI Synthesis
                           </span>
                           {m.response && (
                             <span className="font-label-code-sm text-[9px] text-secondary font-mono">

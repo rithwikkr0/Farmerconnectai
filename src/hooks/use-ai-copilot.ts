@@ -79,7 +79,7 @@ export function useAICopilot() {
         }
         setMessages((prev) => [...prev, assistantMsg])
       } catch (err) {
-        const errMsg = err instanceof Error ? err.message : 'Unable to connect to FarmConnect AI. Please try again.'
+        const errMsg = err instanceof Error ? err.message : 'Unable to connect to Bhoomi Mithra AI. Please try again.'
         setError(errMsg)
         const errorMsg: CopilotMessage = {
           id: `e-${Date.now()}`,

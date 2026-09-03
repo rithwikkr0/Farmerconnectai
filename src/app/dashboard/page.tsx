@@ -251,7 +251,7 @@ export default function FarmCommandCenterPage() {
                 className="px-6 py-2.5 rounded-2xl bg-gradient-to-r from-primary via-primary-container to-secondary-container text-on-primary font-headline-sm text-xs font-bold tracking-wider uppercase hover:scale-105 shadow-[0_0_24px_rgba(198,192,255,0.45)] transition-all flex items-center gap-2"
               >
                 <span className="material-symbols-outlined text-base">forum</span>
-                <span>Ask Farm AI Copilot</span>
+                <span>Ask Bhoomi Mithra AI</span>
               </Link>
               <Link
                 href="/crops"
@@ -267,7 +267,7 @@ export default function FarmCommandCenterPage() {
           <div className="xl:col-span-4 bg-surface-container/60 backdrop-blur-2xl rounded-3xl p-6 border border-primary/25 shadow-2xl flex flex-col items-center justify-between text-center relative overflow-hidden">
             <div className="w-full flex items-center justify-between">
               <span className="font-label-code-sm text-[10px] text-primary uppercase font-mono tracking-widest">
-                Bio-Core Orb // v4.9
+                Bhoomi AI Core // v4.9
               </span>
               <span className="w-2.5 h-2.5 rounded-full bg-primary animate-pulse shadow-[0_0_10px_#c6c0ff]" />
             </div>

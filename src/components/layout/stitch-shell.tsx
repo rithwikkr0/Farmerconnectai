@@ -91,15 +91,15 @@ export function StitchShell({ children }: { children: React.ReactNode }) {
           {/* Logo & Close button */}
           <div className="px-2 flex items-center justify-between">
             <Link href="/" className="flex items-center gap-3 group">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary via-primary-container to-secondary flex items-center justify-center shadow-[0_0_16px_rgba(112,96,249,0.5)]">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary via-primary-container to-secondary flex items-center justify-center shadow-[0_0_16px_rgba(112,96,249,0.5)] shrink-0">
                 <span className="material-symbols-outlined text-surface text-2xl font-bold">eco</span>
               </div>
-              <div className="flex flex-col">
-                <span className="font-headline-sm text-sm text-on-surface tracking-wider uppercase font-bold">
-                  FarmConnect
+              <div className="flex flex-col min-w-0">
+                <span className="font-headline-sm text-sm text-on-surface tracking-wider uppercase font-bold truncate">
+                  Bhoomi Mithra
                 </span>
-                <span className="font-label-code-sm text-[10px] text-primary uppercase font-mono tracking-widest">
-                  Autonomous OS
+                <span className="font-body-sm text-xs text-secondary font-medium tracking-wide">
+                  ಬೆಳಕಿನ ಮನೆ
                 </span>
               </div>
             </Link>
@@ -112,13 +112,13 @@ export function StitchShell({ children }: { children: React.ReactNode }) {
             </button>
           </div>
 
-          {/* Biocore Online Indicator */}
+          {/* System Status Indicator */}
           <div className="px-2">
             <div className="p-2.5 rounded-xl bg-surface-container-lowest/90 border border-primary/20 flex items-center justify-between shadow-inner">
               <div className="flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-primary animate-pulse shadow-[0_0_8px_#c6c0ff]" />
                 <span className="font-label-code-sm text-[10px] text-on-surface uppercase font-bold tracking-wider">
-                  Biocore Online
+                  Bhoomi Node Synced
                 </span>
               </div>
               <span className="font-label-code-sm text-[10px] text-primary bg-primary/10 px-2 py-0.5 rounded font-mono">
@@ -215,6 +215,11 @@ export function StitchShell({ children }: { children: React.ReactNode }) {
               </span>
             </div>
 
+            <div className="hidden xl:flex items-center gap-2 text-xs">
+              <span className="font-headline-sm font-bold text-on-surface">Bhoomi Mithra</span>
+              <span className="text-secondary font-medium font-body-sm">ಬೆಳಕಿನ ಮನೆ</span>
+            </div>
+
             <div className="hidden md:flex items-center gap-4 text-on-surface-variant font-label-code-sm text-xs uppercase">
               <span className="flex items-center gap-1.5">
                 <span className="material-symbols-outlined text-sm text-primary">water_drop</span>
@@ -238,7 +243,7 @@ export function StitchShell({ children }: { children: React.ReactNode }) {
               className="hidden sm:inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-gradient-to-r from-primary-container/30 to-secondary-container/30 border border-primary/40 hover:border-primary text-primary font-label-code-sm text-xs uppercase tracking-wider transition-all"
             >
               <span className="material-symbols-outlined text-sm animate-pulse">neurology</span>
-              <span>Ask AI Copilot</span>
+              <span>Bhoomi Mithra AI</span>
             </Link>
 
             <Link

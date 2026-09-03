@@ -29,7 +29,7 @@ router.get('/api/health', () =>
     success: true,
     data: {
       status: 'ok',
-      service: 'FarmConnect AI Worker',
+      service: 'Bhoomi Mithra AI Worker',
       version: '1.0.0',
       timestamp: new Date().toISOString(),
     },

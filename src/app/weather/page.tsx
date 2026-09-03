@@ -100,7 +100,7 @@ export default function WeatherIntelligencePage() {
             <div className="flex items-center gap-2">
               <span className="material-symbols-outlined text-primary text-base">info</span>
               <span>
-                <strong>DEMO DATA:</strong> Weather is currently served from FarmConnect calibrated agrarian telemetry for demonstration purposes.
+                <strong>DEMO DATA:</strong> Weather is currently served from Bhoomi Mithra calibrated agrarian telemetry for demonstration purposes.
               </span>
             </div>
             <span className="font-label-code-sm text-[10px] text-primary uppercase font-bold">Demo Mode</span>

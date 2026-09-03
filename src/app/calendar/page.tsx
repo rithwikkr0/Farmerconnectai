@@ -68,7 +68,9 @@ export default function FarmCalendarPage() {
   const [newTaskCategory, setNewTaskCategory] = useState<CalendarTask['category']>('nutrition')
 
   useEffect(() => {
-    const saved = localStorage.getItem('farmconnect_calendar_tasks')
+    const saved =
+      localStorage.getItem('bhoomimithra_calendar_tasks') ||
+      localStorage.getItem('farmconnect_calendar_tasks')
     if (saved) {
       try {
         setTasks(JSON.parse(saved))
@@ -82,7 +84,7 @@ export default function FarmCalendarPage() {
 
   const saveTasks = (newTasks: CalendarTask[]) => {
     setTasks(newTasks)
-    localStorage.setItem('farmconnect_calendar_tasks', JSON.stringify(newTasks))
+    localStorage.setItem('bhoomimithra_calendar_tasks', JSON.stringify(newTasks))
   }
 
   const toggleTask = (id: string) => {

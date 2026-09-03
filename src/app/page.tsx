@@ -66,16 +66,20 @@ export default function SplashPage() {
               </div>
             </div>
 
-            <h1 className="font-headline-lg text-headline-lg text-white tracking-tight drop-shadow-[0_2px_16px_rgba(198,192,255,0.4)]">
-              FarmConnect <span className="text-primary font-bold">AI</span>
+            <h1 className="font-headline-lg text-headline-lg text-white tracking-tight drop-shadow-[0_2px_16px_rgba(198,192,255,0.4)] uppercase">
+              BHOOMI <span className="text-primary font-bold">MITHRA</span>
             </h1>
 
-            <p className="font-body-lg text-body-lg text-secondary mt-3 font-medium tracking-wide">
-              Your farm. Your data. <span className="text-white font-bold">Your AI.</span>
+            <div className="font-headline-sm text-lg sm:text-xl text-secondary mt-2 tracking-wider font-semibold">
+              ಬೆಳಕಿನ ಮನೆ
+            </div>
+
+            <p className="font-body-lg text-body-lg text-on-surface mt-2 font-medium tracking-wide">
+              Your farm. Your data. <span className="text-primary font-bold">Your AI.</span>
             </p>
 
             <p className="font-body-md text-body-md text-on-surface-variant mt-1.5 max-w-md">
-              Bio-synthetic intelligence and precision agronomic orchestration for every stage of farming.
+              AI-powered agricultural ecosystem helping farmers understand their farm, weather, crops, resources, and markets.
             </p>
 
             {/* Equalizer Frequency Pulse */}
@@ -127,7 +131,7 @@ export default function SplashPage() {
           </div>
 
           <div className="text-center font-label-code-sm text-[10px] text-on-surface-variant/70 tracking-widest uppercase">
-            FARMCONNECT AUTONOMOUS ECOSYSTEMS © 2026 • ENTERPRISE AGRONOMIC INTELLIGENCE
+            BHOOMI MITHRA ECOSYSTEMS © 2026 • ಬೆಳಕಿನ ಮನೆ • ENTERPRISE AGRONOMIC INTELLIGENCE
           </div>
         </div>
       </div>

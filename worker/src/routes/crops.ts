@@ -30,21 +30,24 @@ export async function handleCropRecommend(
 
   const req = body as Partial<CropRecommendationRequest>;
 
-  // ── Validation ────────────────────────────────────────────────────────────
-  const missing: string[] = [];
-  if (!req.location?.trim()) missing.push('location');
-  if (!req.soil?.trim()) missing.push('soil');
-  if (!req.waterAvailability) missing.push('waterAvailability');
-  if (!req.landSize || req.landSize <= 0) missing.push('landSize (positive number in acres)');
-  if (!req.season?.trim()) missing.push('season');
-  if (!req.farmerGoal) missing.push('farmerGoal');
-
-  if (missing.length > 0) {
-    return errorResponse(
-      `Missing required fields: ${missing.join(', ')}`,
-      'MISSING_FIELDS',
-      400
-    );
+  // ── Validation & Defaults ────────────────────────────────────────────────
+  if (!req.location?.trim()) {
+    return errorResponse('location is required', 'MISSING_FIELDS', 400);
+  }
+  if (!req.soil?.trim()) {
+    req.soil = 'Red sandy loam';
+  }
+  if (!req.landSize || req.landSize <= 0) {
+    req.landSize = 2.5;
+  }
+  if (!req.season?.trim()) {
+    req.season = 'Kharif';
+  }
+  if (!req.waterAvailability || !VALID_WATER_AVAILABILITY.has(req.waterAvailability)) {
+    req.waterAvailability = 'moderate';
+  }
+  if (!req.farmerGoal || !VALID_FARMER_GOALS.has(req.farmerGoal)) {
+    req.farmerGoal = 'profit';
   }
 
   if (req.landSize! > 100000) {

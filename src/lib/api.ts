@@ -206,6 +206,8 @@ export interface MarketplaceResponse {
 }
 
 export interface FarmContext {
+  farmerName?: string
+  farmerPhone?: string
   location?: string
   district?: string
   state?: string
@@ -220,7 +222,90 @@ export interface FarmContext {
   additionalNotes?: string
 }
 
-// ─── Internal fetch wrapper ───────────────────────────────────────────────────
+// ─── Authentication Types ───────────────────────────────────────────────────
+
+export interface AuthUser {
+  id: string
+  full_name: string
+  email: string
+  mobile: string
+  created_at: string
+  status: string
+}
+
+export interface DbFarmProfile {
+  id: string
+  user_id: string
+  village?: string | null
+  district?: string | null
+  state?: string | null
+  location: string
+  latitude?: number | null
+  longitude?: number | null
+  land_size_acres: number
+  soil_type: string
+  water_availability: string
+  current_crop: string
+  season: string
+  farming_goal: string
+  livestock?: string | null
+  created_at: string
+  updated_at: string
+}
+
+export interface AuthData {
+  sessionToken?: string
+  user: AuthUser
+  farmProfile: DbFarmProfile | null
+}
+
+export interface RegisterPayload {
+  fullName: string
+  email: string
+  mobile: string
+  password: string
+  village?: string
+  district?: string
+  state?: string
+  location: string
+  landSizeAcres?: number
+  soilType: string
+  waterAvailability: string
+  currentCrop: string
+  season: string
+  farmingGoal: string
+  livestock?: string
+  latitude?: number
+  longitude?: number
+}
+
+export interface LoginPayload {
+  email: string
+  password: string
+}
+
+// ─── Internal fetch wrapper & Token Storage ─────────────────────────────────
+
+const TOKEN_KEY = 'bhoomi_session_token'
+
+export function setSessionToken(token: string | null) {
+  if (typeof window !== 'undefined') {
+    if (token) {
+      sessionStorage.setItem(TOKEN_KEY, token)
+      localStorage.setItem(TOKEN_KEY, token)
+    } else {
+      sessionStorage.removeItem(TOKEN_KEY)
+      localStorage.removeItem(TOKEN_KEY)
+    }
+  }
+}
+
+export function getSessionToken(): string | null {
+  if (typeof window !== 'undefined') {
+    return sessionStorage.getItem(TOKEN_KEY) || localStorage.getItem(TOKEN_KEY)
+  }
+  return null
+}
 
 const BASE_URL =
   process.env.NEXT_PUBLIC_WORKER_URL ||
@@ -245,10 +330,20 @@ async function apiFetch<T>(
   const url = `${BASE_URL}${path}`
   let res: Response
 
+  const token = getSessionToken()
+  const customHeaders: Record<string, string> = {
+    'Content-Type': 'application/json',
+    ...((options?.headers as Record<string, string>) || {}),
+  }
+  if (token) {
+    customHeaders['Authorization'] = `Bearer ${token}`
+  }
+
   try {
     res = await fetch(url, {
-      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
       ...options,
+      headers: customHeaders,
     })
   } catch {
     throw new ApiError(
@@ -381,6 +476,55 @@ export async function getMarketplaceListings(filters?: {
   if (filters?.available !== undefined) params['available'] = String(filters.available)
   const qs = new URLSearchParams(params).toString()
   return apiFetch(`/api/marketplace${qs ? `?${qs}` : ''}`)
+}
+
+// ─── Authentication API Functions ─────────────────────────────────────────────
+
+/** Register a new farmer account and initialize farm profile */
+export async function registerFarmer(payload: RegisterPayload): Promise<AuthData> {
+  const data = await apiFetch<AuthData>('/api/auth/register', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  })
+  if (data.sessionToken) setSessionToken(data.sessionToken)
+  return data
+}
+
+/** Login existing farmer */
+export async function loginFarmer(payload: LoginPayload): Promise<AuthData> {
+  const data = await apiFetch<AuthData>('/api/auth/login', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  })
+  if (data.sessionToken) setSessionToken(data.sessionToken)
+  return data
+}
+
+/** Logout current session */
+export async function logoutFarmer(): Promise<{ message: string }> {
+  try {
+    const res = await apiFetch<{ message: string }>('/api/auth/logout', {
+      method: 'POST',
+    })
+    setSessionToken(null)
+    return res
+  } catch {
+    setSessionToken(null)
+    return { message: 'Logged out' }
+  }
+}
+
+/** Fetch authenticated farmer and farm profile */
+export async function getAuthMe(): Promise<AuthData> {
+  return apiFetch<AuthData>('/api/auth/me')
+}
+
+/** Update farmer profile in D1 */
+export async function updateFarmerProfile(payload: Partial<DbFarmProfile>): Promise<AuthData> {
+  return apiFetch<AuthData>('/api/auth/profile', {
+    method: 'PUT',
+    body: JSON.stringify(payload),
+  })
 }
 
 // ─── Re-export the error class so callers can instanceof check ────────────────

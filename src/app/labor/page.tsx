@@ -9,7 +9,7 @@ import { getNearbyLabor, createLaborRequest } from '@/lib/api'
 import type { LaborWorker } from '@/lib/api'
 
 export default function FarmLaborMarketplacePage() {
-  const { context } = useFarmContext()
+  const { context, user, farmProfile } = useFarmContext()
   const [location, setLocation] = useState(context.location || 'Mandya, Karnataka')
   const [radius, setRadius] = useState<number>(10)
   const [skillFilter, setSkillFilter] = useState('all')
@@ -87,15 +87,15 @@ export default function FarmLaborMarketplacePage() {
     setBookingId(worker.id)
     try {
       await createLaborRequest({
-        farmerName: context.location ? `Operator (${context.location.split(',')[0]})` : 'Farm Operator',
-        farmerPhone: '+91 98450 12345',
-        location,
+        farmerName: user?.full_name || context.farmerName || 'Ramesh Gowda',
+        farmerPhone: user?.mobile || context.farmerPhone || '+91 98450 12345',
+        location: farmProfile?.location || location,
         skill: worker.skills[0] || 'General Farm Labor',
         startDate: 'Tomorrow',
         durationDays: 1,
-        description: 'Emergency drainage furrow trenching & crop harvesting',
+        description: `Emergency drainage furrow trenching & crop harvesting for ${worker.name}`,
       })
-      toast.success(`Booking request confirmed with ${worker.name}!`)
+      toast.success(`Booking request confirmed with ${worker.name}! Stored in Cloudflare D1.`)
     } catch {
       toast.success(`Booking request dispatched to ${worker.name}`)
     } finally {

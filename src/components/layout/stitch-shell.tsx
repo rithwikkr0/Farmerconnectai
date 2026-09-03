@@ -3,6 +3,7 @@
 import React, { useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { toast } from 'sonner'
 import { useFarmContext } from '@/hooks/use-farm-context'
 
 interface NavItem {
@@ -23,6 +24,7 @@ const NAV_GROUPS: NavGroup[] = [
     items: [
       { name: 'Command Center', href: '/dashboard', icon: 'space_dashboard' },
       { name: 'AI Copilot', href: '/copilot', icon: 'psychology', badge: 'v4.9' },
+      { name: 'Farmer Profile', href: '/profile', icon: 'account_circle', badge: 'D1' },
       { name: 'Set Up Your Farm', href: '/setup', icon: 'tune' },
       { name: 'Splash Experience', href: '/', icon: 'satellite_alt' },
     ],
@@ -56,7 +58,7 @@ const NAV_GROUPS: NavGroup[] = [
 export function StitchShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const [mobileOpen, setMobileOpen] = useState(false)
-  const { context } = useFarmContext()
+  const { context, user, isAuthenticated, logout } = useFarmContext()
 
   const currentSector = context.district
     ? `${context.district} Sector`
@@ -265,20 +267,54 @@ export function StitchShell({ children }: { children: React.ReactNode }) {
               <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-primary" />
             </Link>
 
-            {/* Operator Profile Chip */}
-            <div className="flex items-center gap-2.5 pl-2 pr-3 py-1 rounded-xl bg-surface-container/70 border border-outline-variant/30">
-              <div className="w-7 h-7 rounded-lg bg-primary-container text-on-primary-container flex items-center justify-center font-headline-sm text-xs font-bold">
-                FP
+            {/* Operator Profile Chip & Authentication Actions */}
+            {isAuthenticated && user ? (
+              <div className="flex items-center gap-2">
+                <Link
+                  href="/profile"
+                  className="flex items-center gap-2.5 pl-2 pr-3 py-1 rounded-xl bg-surface-container/70 border border-primary/40 hover:border-primary transition-all group"
+                  title="View Farmer Profile"
+                >
+                  <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-primary to-primary-container text-surface flex items-center justify-center font-headline-sm text-xs font-bold shadow-sm">
+                    {user.full_name ? user.full_name[0].toUpperCase() : 'F'}
+                  </div>
+                  <div className="hidden sm:flex flex-col text-left">
+                    <span className="font-body-sm text-xs text-on-surface font-semibold leading-tight group-hover:text-primary transition-colors">
+                      {user.full_name}
+                    </span>
+                    <span className="font-label-code-sm text-[9px] text-secondary uppercase font-medium">
+                      {context.primaryCrop || 'Farmer'}
+                    </span>
+                  </div>
+                </Link>
+                <button
+                  type="button"
+                  onClick={async () => {
+                    await logout()
+                    toast.success('Signed out successfully.')
+                  }}
+                  className="w-8 h-8 rounded-xl bg-surface-container hover:bg-surface-container-high text-on-surface-variant hover:text-error transition-colors flex items-center justify-center"
+                  title="Logout"
+                >
+                  <span className="material-symbols-outlined text-base">logout</span>
+                </button>
               </div>
-              <div className="hidden sm:flex flex-col text-left">
-                <span className="font-body-sm text-xs text-on-surface font-semibold leading-tight">
-                  {context.location || 'Farm Operator'}
-                </span>
-                <span className="font-label-code-sm text-[9px] text-primary uppercase">
-                  {context.primaryCrop || 'Canopy Lead'}
-                </span>
+            ) : (
+              <div className="flex items-center gap-2">
+                <Link
+                  href="/login"
+                  className="px-3 py-1.5 rounded-xl bg-surface-container/70 border border-outline-variant/40 hover:border-primary/40 text-on-surface hover:text-white font-label-code-sm text-xs uppercase tracking-wider transition-all"
+                >
+                  Sign In
+                </Link>
+                <Link
+                  href="/register"
+                  className="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-primary to-primary-container text-surface font-label-code-sm text-xs uppercase font-bold tracking-wider shadow-[0_0_12px_rgba(112,96,249,0.35)] hover:shadow-[0_0_20px_rgba(112,96,249,0.5)] transition-all"
+                >
+                  Register
+                </Link>
               </div>
-            </div>
+            )}
           </div>
         </header>
 

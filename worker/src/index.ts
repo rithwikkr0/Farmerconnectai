@@ -1,17 +1,20 @@
 /**
- * FarmConnect AI — Cloudflare Worker Entry Point
+ * Bhoomi Mithra — Cloudflare Worker Entry Point
  *
- * All incoming requests are routed here. CORS headers are added to every
- * response so the React frontend (localhost:3000) can call the worker.
- *
- * To add a new route:
- *  1. Create a handler in src/routes/
- *  2. Import it below and register it with router.get/post()
+ * Itty-router based router that delegates to modular route handlers:
+ * - /api/health
+ * - /api/auth/register, /api/auth/login, /api/auth/logout, /api/auth/me, /api/auth/profile
+ * - /api/ai
+ * - /api/weather, /api/weather/advice
+ * - /api/crops/recommend
+ * - /api/farmers/match
+ * - /api/labor/nearby, /api/labor/request
+ * - /api/marketplace
+ * - /api/services
  */
 
-import { Router, error, json } from 'itty-router';
+import { Router, json, error } from 'itty-router';
 import type { Env } from './types/index.js';
-
 import { handleAI } from './routes/ai.js';
 import { handleGetWeather, handleWeatherAdvice } from './routes/weather.js';
 import { handleCropRecommend } from './routes/crops.js';
@@ -19,6 +22,13 @@ import { handleFarmerMatch } from './routes/farmers.js';
 import { handleLaborNearby, handleLaborRequest } from './routes/labor.js';
 import { handleMarketplace } from './routes/marketplace.js';
 import { handleServices } from './routes/services.js';
+import {
+  handleRegister,
+  handleLogin,
+  handleLogout,
+  handleGetMe,
+  handleUpdateProfile,
+} from './routes/auth.js';
 
 // ─── Router ───────────────────────────────────────────────────────────────────
 
@@ -36,6 +46,13 @@ router.get('/api/health', () =>
     },
   })
 );
+
+// Auth & Farmer Profile
+router.post('/api/auth/register', handleRegister);
+router.post('/api/auth/login', handleLogin);
+router.post('/api/auth/logout', handleLogout);
+router.get('/api/auth/me', handleGetMe);
+router.put('/api/auth/profile', handleUpdateProfile);
 
 // AI — general purpose
 router.post('/api/ai', handleAI);
@@ -74,11 +91,13 @@ router.all('*', () =>
 
 // ─── CORS helper ──────────────────────────────────────────────────────────────
 
-function corsHeaders(origin: string): Record<string, string> {
+function corsHeaders(requestOrigin: string | null): Record<string, string> {
+  const origin = requestOrigin || '*';
   return {
     'Access-Control-Allow-Origin': origin,
-    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization, Cookie',
+    'Access-Control-Allow-Credentials': 'true',
     'Access-Control-Max-Age': '86400',
   };
 }
@@ -87,8 +106,8 @@ function corsHeaders(origin: string): Record<string, string> {
 
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
-    const allowedOrigin = env.ALLOWED_ORIGIN ?? '*';
-    const cors = corsHeaders(allowedOrigin);
+    const requestOrigin = request.headers.get('Origin');
+    const cors = corsHeaders(requestOrigin);
 
     // Handle CORS preflight
     if (request.method === 'OPTIONS') {

@@ -10,12 +10,12 @@ import { getWeather } from '@/lib/api'
 import type { WeatherData } from '@/lib/api'
 
 export default function FarmCommandCenterPage() {
-  const { context } = useFarmContext()
+  const { context, user, isAuthenticated } = useFarmContext()
   const [activeLayer, setActiveLayer] = useState<'moisture' | 'vigor' | 'irrigation'>('moisture')
   const [weatherData, setWeatherData] = useState<WeatherData | null>(null)
 
   const farmLocation = context.location || 'Mandya, Karnataka'
-  const primaryCrop = context.primaryCrop || 'Tomato (Arka Rakshak)'
+  const primaryCrop = context.primaryCrop || 'Finger Millet (Ragi)'
 
   useEffect(() => {
     getWeather(farmLocation)
@@ -28,6 +28,47 @@ export default function FarmCommandCenterPage() {
   return (
     <StitchShell>
       <div className="w-full max-w-[1680px] mx-auto px-4 sm:px-6 lg:px-12 py-6 flex flex-col gap-8">
+        {/* Personalized Farmer Greeting & Agro-Parameters Banner */}
+        <section className="p-6 rounded-3xl bg-gradient-to-r from-surface-container-low/90 via-surface-container/60 to-surface-container-low/90 border border-primary/30 backdrop-blur-2xl shadow-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+          <div className="flex items-center gap-4">
+            <div className="w-14 h-14 rounded-2xl bg-surface-container-high/90 border border-primary/40 flex items-center justify-center p-1 shadow-lg shrink-0">
+              <img src="/logo.png" alt="Bhoomi Mithra" className="w-full h-full object-cover rounded-xl" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2 flex-wrap">
+                <h2 className="font-headline-sm text-xl sm:text-2xl text-white font-bold">
+                  {user ? `Welcome back, ${user.full_name}` : (context.farmerName ? `Welcome back, ${context.farmerName}` : 'Welcome, Farm Operator')}
+                </h2>
+                <span className="px-2.5 py-0.5 rounded-full bg-primary/20 border border-primary/40 text-primary text-xs font-label-code-sm font-semibold uppercase">
+                  {isAuthenticated ? 'Cloudflare D1 Verified' : 'Local Node Active'}
+                </span>
+              </div>
+              <p className="text-on-surface-variant text-xs font-label-code-sm mt-1">
+                Autonomous Agro-OS synchronized with Indian Meteorological telemetry and Gemini AI advisory
+              </p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 w-full md:w-auto">
+            <div className="px-3.5 py-2 rounded-xl bg-surface-container-high/60 border border-outline-variant/30 text-center">
+              <span className="block text-[10px] font-label-code-sm uppercase text-on-surface-variant">Primary Crop</span>
+              <span className="font-bold text-xs sm:text-sm text-secondary truncate block">{primaryCrop}</span>
+            </div>
+            <div className="px-3.5 py-2 rounded-xl bg-surface-container-high/60 border border-outline-variant/30 text-center">
+              <span className="block text-[10px] font-label-code-sm uppercase text-on-surface-variant">Land Size</span>
+              <span className="font-bold text-xs sm:text-sm text-primary truncate block">{context.landSizeAcres ?? 3.5} Acres</span>
+            </div>
+            <div className="px-3.5 py-2 rounded-xl bg-surface-container-high/60 border border-outline-variant/30 text-center">
+              <span className="block text-[10px] font-label-code-sm uppercase text-on-surface-variant">Soil Type</span>
+              <span className="font-bold text-xs sm:text-sm text-on-surface truncate block">{context.soilType || 'Red sandy loam'}</span>
+            </div>
+            <div className="px-3.5 py-2 rounded-xl bg-surface-container-high/60 border border-outline-variant/30 text-center">
+              <span className="block text-[10px] font-label-code-sm uppercase text-on-surface-variant">Water Access</span>
+              <span className="font-bold text-xs sm:text-sm text-secondary truncate block capitalize">{context.waterAvailability || 'Moderate'}</span>
+            </div>
+          </div>
+        </section>
+
         {/* Top Command Deck Telemetry Bar */}
         <section className="flex items-center justify-between flex-wrap gap-4 pb-2 border-b border-outline-variant/30">
           <div className="flex flex-col gap-1">

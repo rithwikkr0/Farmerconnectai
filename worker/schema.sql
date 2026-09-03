@@ -3,7 +3,8 @@
 -- ==============================================================================
 --
 -- This schema provisions production tables for farmers, labor workers,
--- labor requests, marketplace listings, and agricultural services.
+-- labor requests, marketplace listings, agricultural services, users,
+-- sessions, and persistent farm profiles.
 --
 -- To provision locally:
 --   npx wrangler d1 execute DB --local --file=./schema.sql
@@ -98,12 +99,62 @@ CREATE TABLE IF NOT EXISTS agricultural_services (
   latitude REAL,
   longitude REAL,
   phone_masked TEXT NOT NULL,
-  operating_radius_km INTEGER NOT NULL DEFAULT 25,
-  services TEXT NOT NULL, -- JSON array of strings
+  operating_radius_km REAL DEFAULT 15.0,
+  services TEXT NOT NULL,
   tariff_description TEXT,
+  rating REAL NOT NULL DEFAULT 4.8,
   verification_status TEXT NOT NULL DEFAULT 'verified',
   status TEXT NOT NULL DEFAULT 'active',
   created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE INDEX IF NOT EXISTS idx_services_cat ON agricultural_services(category);
+CREATE INDEX IF NOT EXISTS idx_agri_services_cat ON agricultural_services(category);
+
+-- 6. Users (Real Farmer Authentication)
+CREATE TABLE IF NOT EXISTS users (
+  id TEXT PRIMARY KEY,
+  full_name TEXT NOT NULL,
+  email TEXT NOT NULL UNIQUE,
+  mobile TEXT NOT NULL,
+  password_hash TEXT NOT NULL,
+  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  status TEXT NOT NULL DEFAULT 'active'
+);
+
+CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
+
+-- 7. Sessions (Secure Session Management)
+CREATE TABLE IF NOT EXISTS sessions (
+  id TEXT PRIMARY KEY,
+  user_id TEXT NOT NULL,
+  expires_at TEXT NOT NULL,
+  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS idx_sessions_user ON sessions(user_id);
+CREATE INDEX IF NOT EXISTS idx_sessions_expires ON sessions(expires_at);
+
+-- 8. Farm Profiles (Persistent Agro-Context linked to user)
+CREATE TABLE IF NOT EXISTS farm_profiles (
+  id TEXT PRIMARY KEY,
+  user_id TEXT NOT NULL UNIQUE,
+  village TEXT,
+  district TEXT,
+  state TEXT,
+  location TEXT NOT NULL,
+  latitude REAL,
+  longitude REAL,
+  land_size_acres REAL NOT NULL DEFAULT 1.0,
+  soil_type TEXT NOT NULL,
+  water_availability TEXT NOT NULL,
+  current_crop TEXT NOT NULL,
+  season TEXT NOT NULL,
+  farming_goal TEXT NOT NULL,
+  livestock TEXT,
+  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS idx_farm_profiles_user ON farm_profiles(user_id);

@@ -1,69 +1,137 @@
-import Image from "next/image";
+import type { Metadata } from 'next'
+import Link from 'next/link'
+import { Badge } from '@/components/ui/badge'
+import { buttonVariants } from '@/components/ui/button'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+  Sprout,
+  CloudSun,
+  Users,
+  HardHat,
+  ShoppingBag,
+  Bot,
+  ArrowRight,
+  Leaf,
+} from 'lucide-react'
 
-export default function Home() {
+export const metadata: Metadata = {
+  title: 'Dashboard — FarmConnect AI',
+}
+
+const features = [
+  {
+    icon: Bot,
+    title: 'AI Copilot',
+    description: 'Ask any farming question. Get instant, context-aware advice powered by Gemini.',
+    href: '/copilot',
+    color: 'text-green-600',
+    bg: 'bg-green-50 dark:bg-green-950',
+  },
+  {
+    icon: Sprout,
+    title: 'Crop Advisor',
+    description: 'Get personalised crop recommendations based on your soil, water, and season.',
+    href: '/crops',
+    color: 'text-emerald-600',
+    bg: 'bg-emerald-50 dark:bg-emerald-950',
+  },
+  {
+    icon: CloudSun,
+    title: 'Weather & Advisory',
+    description: 'Local weather forecast with AI-generated crop-specific preventive actions.',
+    href: '/weather',
+    color: 'text-sky-600',
+    bg: 'bg-sky-50 dark:bg-sky-950',
+  },
+  {
+    icon: Users,
+    title: 'Farmer Connect',
+    description: 'Find nearby farmers who grow your crop or have solved your problem.',
+    href: '/farmers',
+    color: 'text-violet-600',
+    bg: 'bg-violet-50 dark:bg-violet-950',
+  },
+  {
+    icon: HardHat,
+    title: 'Labor Hire',
+    description: 'Find available agricultural workers near you. Post a request in seconds.',
+    href: '/labor',
+    color: 'text-orange-600',
+    bg: 'bg-orange-50 dark:bg-orange-950',
+  },
+  {
+    icon: ShoppingBag,
+    title: 'Marketplace',
+    description: 'Browse seeds, fertilizers, equipment, and produce from local sellers.',
+    href: '/marketplace',
+    color: 'text-rose-600',
+    bg: 'bg-rose-50 dark:bg-rose-950',
+  },
+]
+
+export default function DashboardPage() {
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
+      {/* Hero */}
+      <section className="mb-12 text-center">
+        <div className="mb-4 flex justify-center">
+          <div className="bg-green-100 dark:bg-green-900 flex size-16 items-center justify-center rounded-2xl">
+            <Leaf className="text-green-600 size-8" />
+          </div>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+        <Badge variant="secondary" className="mb-4">
+          Powered by Gemini AI
+        </Badge>
+        <h1 className="text-foreground mb-3 text-4xl font-bold tracking-tight sm:text-5xl">
+          FarmConnect AI
+        </h1>
+        <p className="text-muted-foreground mx-auto mb-8 max-w-xl text-base sm:text-lg">
+          Your AI-powered agricultural copilot. Get crop advice, weather alerts, connect with
+          farmers, hire labour, and browse the marketplace — all in one place.
+        </p>
+        <div className="flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
+          <Link href="/copilot" className={buttonVariants({ size: 'lg' }) + ' w-full sm:w-auto'}>
+            <Bot className="mr-2 size-4" />
+            Ask the AI Copilot
+            <ArrowRight className="ml-2 size-4" />
+          </Link>
+          <Link href="/crops" className={buttonVariants({ variant: 'outline', size: 'lg' }) + ' w-full sm:w-auto'}>
+            <Sprout className="mr-2 size-4" />
+            Get Crop Advice
+          </Link>
         </div>
-      </main>
+      </section>
+
+      {/* Feature Grid */}
+      <section>
+        <h2 className="text-foreground mb-6 text-center text-xl font-semibold tracking-tight">
+          What can FarmConnect AI do for you?
+        </h2>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {features.map((feature) => (
+            <Link key={feature.href} href={feature.href} className="group block">
+              <Card className="h-full transition-shadow hover:shadow-md">
+                <CardHeader className="pb-3">
+                  <div
+                    className={`mb-3 flex size-10 items-center justify-center rounded-xl ${feature.bg}`}
+                  >
+                    <feature.icon className={`size-5 ${feature.color}`} />
+                  </div>
+                  <CardTitle className="flex items-center justify-between text-sm font-semibold">
+                    {feature.title}
+                    <ArrowRight className="text-muted-foreground size-3.5 opacity-0 transition-opacity group-hover:opacity-100" />
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <CardDescription className="text-xs leading-relaxed">
+                    {feature.description}
+                  </CardDescription>
+                </CardContent>
+              </Card>
+            </Link>
+          ))}
+        </div>
+      </section>
     </div>
-  );
+  )
 }

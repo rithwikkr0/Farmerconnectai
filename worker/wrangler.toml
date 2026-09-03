@@ -1,0 +1,23 @@
+name = "farmconnect-ai-worker"
+main = "src/index.ts"
+compatibility_date = "2024-12-01"
+compatibility_flags = ["nodejs_compat"]
+
+# ─── Local development ───────────────────────────────────────────────────────
+# Run: wrangler dev
+# Secrets are loaded from .dev.vars (see .dev.vars.example)
+
+# ─── D1 Database (optional — wire up for persistent labor requests) ──────────
+# Uncomment when ready to enable persistent storage:
+# [[d1_databases]]
+# binding = "DB"
+# database_name = "farmconnect"
+# database_id = "YOUR_D1_DATABASE_ID_HERE"
+
+# ─── Production secrets ──────────────────────────────────────────────────────
+# Set via: wrangler secret put GEMINI_API_KEY
+# NEVER commit real keys to this file.
+
+[vars]
+# Public, non-sensitive config variables only.
+ALLOWED_ORIGIN = "*"

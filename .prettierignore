@@ -1,0 +1,8 @@
+# Prettier ignore
+.next
+node_modules
+dist
+out
+public
+*.min.js
+*.min.css

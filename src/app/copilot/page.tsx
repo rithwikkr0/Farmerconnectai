@@ -47,8 +47,8 @@ export default function FarmAICopilotPage() {
               <div className="absolute top-4 left-2 sm:left-10 flex items-center gap-2.5 px-3 py-1.5 rounded-xl bg-surface-container-high/90 border border-primary/25 backdrop-blur-md shadow-lg">
                 <span className="material-symbols-outlined text-primary text-base">cloudy_snowing</span>
                 <div className="flex flex-col">
-                  <span className="font-label-code-sm text-[9px] text-primary uppercase font-bold">Weather Pulse</span>
-                  <span className="font-body-sm text-xs text-on-surface">70% Rain Tomorrow</span>
+                  <span className="font-label-code-sm text-[9px] text-primary uppercase font-bold">Live Weather</span>
+                  <span className="font-body-sm text-xs text-on-surface">Open-Meteo API</span>
                 </div>
               </div>
 
@@ -56,8 +56,8 @@ export default function FarmAICopilotPage() {
               <div className="absolute top-4 right-2 sm:right-10 flex items-center gap-2.5 px-3 py-1.5 rounded-xl bg-surface-container-high/90 border border-secondary/25 backdrop-blur-md shadow-lg">
                 <span className="material-symbols-outlined text-secondary text-base">eco</span>
                 <div className="flex flex-col">
-                  <span className="font-label-code-sm text-[9px] text-secondary uppercase font-bold">Crop Matrix</span>
-                  <span className="font-body-sm text-xs text-on-surface">{primaryCrop} • 89%</span>
+                  <span className="font-label-code-sm text-[9px] text-secondary uppercase font-bold">Your Crop</span>
+                  <span className="font-body-sm text-xs text-on-surface">{primaryCrop.split('(')[0].trim()}</span>
                 </div>
               </div>
 
@@ -65,17 +65,17 @@ export default function FarmAICopilotPage() {
               <div className="absolute bottom-4 left-4 sm:left-16 flex items-center gap-2.5 px-3 py-1.5 rounded-xl bg-surface-container-high/90 border border-secondary/25 backdrop-blur-md shadow-lg">
                 <span className="material-symbols-outlined text-secondary text-base">engineering</span>
                 <div className="flex flex-col">
-                  <span className="font-label-code-sm text-[9px] text-secondary uppercase font-bold">Labor HUD</span>
-                  <span className="font-body-sm text-xs text-on-surface">8 Workers Near You</span>
+                  <span className="font-label-code-sm text-[9px] text-secondary uppercase font-bold">Labor Network</span>
+                  <span className="font-body-sm text-xs text-on-surface">Workers Near You</span>
                 </div>
               </div>
 
               {/* BADGE 4: MARKET */}
               <div className="absolute bottom-4 right-4 sm:right-16 flex items-center gap-2.5 px-3 py-1.5 rounded-xl bg-surface-container-high/90 border border-primary/25 backdrop-blur-md shadow-lg">
-                <span className="material-symbols-outlined text-primary text-base">payments</span>
+                <span className="material-symbols-outlined text-primary text-base">storefront</span>
                 <div className="flex flex-col">
-                  <span className="font-label-code-sm text-[9px] text-primary uppercase font-bold">Market Node</span>
-                  <span className="font-body-sm text-xs text-on-surface">3 Buyers • ₹38/kg</span>
+                  <span className="font-label-code-sm text-[9px] text-primary uppercase font-bold">Marketplace</span>
+                  <span className="font-body-sm text-xs text-on-surface">Browse Listings</span>
                 </div>
               </div>
             </div>
@@ -438,40 +438,48 @@ export default function FarmAICopilotPage() {
 
           {/* RIGHT COLUMN: LIVE VITALS & PROACTIVE ACTIONS (3 cols) */}
           <aside className="lg:col-span-3 flex flex-col gap-5">
-            {/* Live Plot Vitals */}
+            {/* Farm Summary Panel */}
             <div className="rounded-2xl bg-surface-container/70 border border-outline-variant/30 backdrop-blur-md p-4 flex flex-col gap-3 shadow-lg">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <span className="material-symbols-outlined text-primary text-base">sensors</span>
+                  <span className="material-symbols-outlined text-primary text-base">agriculture</span>
                   <span className="font-label-code-sm text-xs text-on-surface font-bold uppercase tracking-wider">
-                    Live Vitals
+                    Your Farm
                   </span>
                 </div>
-                <span className="font-label-code-sm text-[10px] text-primary uppercase font-mono">Plot 4B</span>
+                <span className="font-label-code-sm text-[10px] text-secondary uppercase font-mono">Profile</span>
               </div>
 
               <div className="grid grid-cols-2 gap-2">
                 <div className="p-2.5 rounded-xl bg-surface-container-low border border-outline-variant/20 flex flex-col">
-                  <span className="font-label-code-sm text-[9px] text-on-surface-variant uppercase">Canopy Vigor</span>
-                  <span className="font-headline-sm text-base text-primary font-bold mt-0.5">87%</span>
-                  <span className="font-label-code-sm text-[9px] text-on-surface-variant font-mono">Optimal</span>
+                  <span className="font-label-code-sm text-[9px] text-on-surface-variant uppercase">Location</span>
+                  <span className="font-headline-sm text-xs text-primary font-bold mt-0.5 truncate">
+                    {context.location?.split(',')[0] || 'Not set'}
+                  </span>
                 </div>
                 <div className="p-2.5 rounded-xl bg-surface-container-low border border-outline-variant/20 flex flex-col">
-                  <span className="font-label-code-sm text-[9px] text-on-surface-variant uppercase">Soil Saturation</span>
-                  <span className="font-headline-sm text-base text-secondary font-bold mt-0.5">74%</span>
-                  <span className="font-label-code-sm text-[9px] text-error font-mono font-bold">Watchpoint</span>
+                  <span className="font-label-code-sm text-[9px] text-on-surface-variant uppercase">Crop</span>
+                  <span className="font-headline-sm text-xs text-secondary font-bold mt-0.5 truncate">
+                    {primaryCrop.split('(')[0].trim() || 'Not set'}
+                  </span>
                 </div>
                 <div className="p-2.5 rounded-xl bg-surface-container-low border border-outline-variant/20 flex flex-col">
-                  <span className="font-label-code-sm text-[9px] text-on-surface-variant uppercase">Nitrogen (N)</span>
-                  <span className="font-headline-sm text-base text-on-surface font-bold mt-0.5">142</span>
-                  <span className="font-label-code-sm text-[9px] text-on-surface-variant font-mono">mg/kg</span>
+                  <span className="font-label-code-sm text-[9px] text-on-surface-variant uppercase">Land</span>
+                  <span className="font-headline-sm text-xs text-on-surface font-bold mt-0.5">
+                    {context.landSizeAcres ? `${context.landSizeAcres} ac` : '—'}
+                  </span>
                 </div>
                 <div className="p-2.5 rounded-xl bg-surface-container-low border border-outline-variant/20 flex flex-col">
-                  <span className="font-label-code-sm text-[9px] text-on-surface-variant uppercase">Market Spot</span>
-                  <span className="font-headline-sm text-base text-primary font-bold mt-0.5">₹38/kg</span>
-                  <span className="font-label-code-sm text-[9px] text-secondary font-mono">+4.2%</span>
+                  <span className="font-label-code-sm text-[9px] text-on-surface-variant uppercase">Water</span>
+                  <span className="font-headline-sm text-xs text-on-surface font-bold mt-0.5 capitalize">
+                    {context.waterAvailability || '—'}
+                  </span>
                 </div>
               </div>
+
+              <p className="text-[10px] font-label-code-sm text-on-surface-variant text-center pt-1">
+                Ask AI below to get personalized advice
+              </p>
             </div>
 
             {/* Proactive Action Cards */}

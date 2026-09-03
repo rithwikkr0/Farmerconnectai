@@ -123,11 +123,11 @@ export function StitchShell({ children }: { children: React.ReactNode }) {
               <div className="flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-primary animate-pulse shadow-[0_0_8px_#c6c0ff]" />
                 <span className="font-label-code-sm text-[10px] text-on-surface uppercase font-bold tracking-wider">
-                  Bhoomi Node Synced
+                  AI Connected
                 </span>
               </div>
               <span className="font-label-code-sm text-[10px] text-primary bg-primary/10 px-2 py-0.5 rounded font-mono">
-                v4.9
+                Online
               </span>
             </div>
           </div>
@@ -181,20 +181,22 @@ export function StitchShell({ children }: { children: React.ReactNode }) {
           </nav>
         </div>
 
-        {/* Sidebar Footer Stats */}
+        {/* Sidebar Footer — Real Farm Context */}
         <div className="px-5 pt-3 border-t border-outline-variant/30 flex flex-col gap-3">
           <div className="p-2.5 rounded-xl bg-surface-container/70 border border-outline-variant/20 flex items-center justify-between">
             <div className="flex flex-col">
               <span className="font-label-code-sm text-[9px] text-on-surface-variant uppercase">
-                Canopy Yield Target
+                Active Crop
               </span>
-              <span className="font-headline-sm text-sm text-primary font-bold">98.4%</span>
+              <span className="font-headline-sm text-sm text-primary font-bold truncate max-w-[140px]">
+                {context.primaryCrop || 'Not set'}
+              </span>
             </div>
-            <span className="material-symbols-outlined text-secondary text-xl">speed</span>
+            <span className="material-symbols-outlined text-secondary text-xl">eco</span>
           </div>
           <div className="flex items-center justify-between text-on-surface-variant text-[10px] font-label-code-sm uppercase">
-            <span>Neural Grid 1680px</span>
-            <span className="text-primary font-bold">Synced</span>
+            <span>{context.location ? context.location.split(',')[0] : 'Karnataka'}</span>
+            <span className="text-primary font-bold">Gemini 3.5</span>
           </div>
         </div>
       </aside>

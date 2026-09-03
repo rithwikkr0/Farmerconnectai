@@ -85,17 +85,17 @@ export default function BusinessOpportunitiesPage() {
             <div className="flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-secondary animate-pulse" />
               <span className="font-label-code-sm text-xs text-secondary uppercase font-bold tracking-wider">
-                Enterprise &amp; Agribusiness Exchange // Demo &amp; Informational Desk
+                Enterprise &amp; Agribusiness
               </span>
             </div>
-            <h1 className="font-headline-lg text-2xl sm:text-3xl font-bold text-on-surface tracking-tight">
-              Business Opportunities
+            <h1 className="font-headline-lg text-2xl sm:text-3xl font-bold text-white tracking-tight">
+              Explore Business Opportunities
             </h1>
           </div>
 
           <div className="flex items-center gap-2">
-            <span className="px-3 py-1 rounded-full bg-surface-container-high border border-secondary/20 font-label-code-sm text-xs text-secondary font-bold">
-              PILOT / DEMO DESK
+            <span className="px-3 py-1 rounded-full bg-surface-container-high border border-secondary/30 font-label-code-sm text-xs text-secondary font-bold uppercase">
+              INFORMATIONAL / EXAMPLE (DEMO)
             </span>
           </div>
         </div>

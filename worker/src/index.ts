@@ -54,15 +54,50 @@ router.post('/api/auth/logout', handleLogout);
 router.get('/api/auth/me', handleGetMe);
 router.put('/api/auth/profile', handleUpdateProfile);
 
-// AI — general purpose
-router.post('/api/ai', handleAI);
+// ─── Rate Limiting Helper ───────────────────────────────────────────────────
+
+const IP_RATE_LIMIT = new Map<string, { count: number; resetAt: number }>();
+
+function checkRateLimit(request: Request, maxPerMin = 40): boolean {
+  const ip = request.headers.get('cf-connecting-ip') || 'client';
+  const now = Date.now();
+  const entry = IP_RATE_LIMIT.get(ip);
+  if (!entry || now > entry.resetAt) {
+    IP_RATE_LIMIT.set(ip, { count: 1, resetAt: now + 60000 });
+    return true;
+  }
+  if (entry.count >= maxPerMin) {
+    return false;
+  }
+  entry.count++;
+  return true;
+}
+
+const withRateLimit = (handler: (req: any, env: any) => Promise<Response>) => {
+  return async (req: any, env: any) => {
+    if (!checkRateLimit(req as unknown as Request)) {
+      return json(
+        {
+          success: false,
+          error: 'AI is temporarily busy. Please try again in a moment.',
+          code: 'RATE_LIMITED',
+        },
+        { status: 429 }
+      );
+    }
+    return handler(req, env);
+  };
+};
+
+// AI — general purpose (rate limited)
+router.post('/api/ai', withRateLimit(handleAI));
 
 // Weather
 router.get('/api/weather', handleGetWeather);
-router.post('/api/weather/advice', handleWeatherAdvice);
+router.post('/api/weather/advice', withRateLimit(handleWeatherAdvice));
 
-// Crops
-router.post('/api/crops/recommend', handleCropRecommend);
+// Crops (rate limited)
+router.post('/api/crops/recommend', withRateLimit(handleCropRecommend));
 
 // Farmer matching
 router.post('/api/farmers/match', handleFarmerMatch);

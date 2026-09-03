@@ -33,22 +33,22 @@ export default function SplashPage() {
           <div className="flex flex-col gap-1 pointer-events-auto">
             <div className="flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-              <span className="font-label-code-sm text-label-code-sm text-on-surface-variant tracking-widest uppercase">
-                SYS.VER // 4.9.2
+              <span className="font-label-code-sm text-xs text-primary uppercase font-bold tracking-wider">
+                Bhoomi Mithra Agro-OS
               </span>
             </div>
-            <span className="font-label-code-sm text-label-code-sm text-primary tracking-wider opacity-90 uppercase">
-              NEURAL GEO-SYNC: ONLINE
+            <span className="font-label-code-sm text-[11px] text-on-surface-variant uppercase">
+              {context.location || 'Karnataka Regional Platform'}
             </span>
           </div>
 
-          <div className="pointer-events-auto flex items-center gap-2.5 px-4 py-1.5 rounded-full bg-surface-container-low/70 backdrop-blur-xl border border-primary/20 shadow-[0_4px_20px_rgba(112,96,249,0.15)]">
+          <div className="pointer-events-auto flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-surface-container-low/70 backdrop-blur-xl border border-primary/20 shadow-sm">
             <span className="relative flex h-2 w-2">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75" />
               <span className="relative inline-flex rounded-full h-2 w-2 bg-primary" />
             </span>
-            <span className="font-label-code-sm text-label-code-sm text-on-surface tracking-widest font-bold uppercase">
-              AI POWERED • GEMINI 2.0
+            <span className="font-label-code-sm text-xs text-white font-bold uppercase tracking-wider">
+              Powered by Google Gemini 3.5
             </span>
           </div>
         </div>
@@ -103,22 +103,32 @@ export default function SplashPage() {
               </span>
             </div>
 
-            {/* Quick Access Dual CTAs */}
-            <div className="mt-8 flex flex-col sm:flex-row items-center gap-3.5 w-full max-w-md">
+            {/* Primary Farmer Entry Actions */}
+            <div className="mt-8 flex flex-col sm:flex-row items-center gap-3 w-full max-w-md">
               <Link
-                href="/dashboard"
-                className="w-full sm:flex-1 py-3 px-5 rounded-2xl bg-gradient-to-r from-primary via-primary-container to-secondary-container text-on-primary font-headline-sm text-xs font-bold uppercase tracking-wider shadow-[0_0_24px_rgba(198,192,255,0.4)] hover:shadow-[0_0_36px_rgba(198,192,255,0.7)] hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2"
+                href="/register"
+                className="w-full sm:flex-1 py-3.5 px-5 rounded-2xl bg-gradient-to-r from-primary to-primary-container text-surface font-headline-sm text-xs font-bold uppercase tracking-wider shadow-[0_0_24px_rgba(112,96,249,0.4)] hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2"
               >
-                <span>Command Center</span>
-                <span className="material-symbols-outlined text-base">arrow_forward</span>
+                <span className="material-symbols-outlined text-base">person_add</span>
+                <span>Create Farmer Account</span>
               </Link>
 
               <Link
-                href="/setup"
-                className="w-full sm:flex-1 py-3 px-5 rounded-2xl bg-surface-container-high/80 hover:bg-surface-container-highest border border-primary/30 text-on-surface font-body-sm text-xs font-semibold uppercase tracking-wider transition-all flex items-center justify-center gap-2"
+                href="/login"
+                className="w-full sm:flex-1 py-3.5 px-5 rounded-2xl bg-surface-container-high hover:bg-surface-container-highest border border-outline-variant/40 text-white font-body-sm text-xs font-semibold uppercase tracking-wider transition-all flex items-center justify-center gap-2"
               >
-                <span className="material-symbols-outlined text-base text-primary">tune</span>
-                <span>Configure Farm</span>
+                <span className="material-symbols-outlined text-base text-primary">login</span>
+                <span>Sign In</span>
+              </Link>
+            </div>
+
+            <div className="mt-4">
+              <Link
+                href="/dashboard"
+                className="text-xs font-label-code-sm text-secondary hover:text-white uppercase tracking-wider font-semibold transition-colors flex items-center gap-1.5"
+              >
+                <span>Explore Demo Command Center</span>
+                <span className="material-symbols-outlined text-sm">arrow_forward</span>
               </Link>
             </div>
           </div>

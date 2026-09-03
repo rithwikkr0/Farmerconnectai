@@ -142,11 +142,11 @@ export default function CropDoctorPage() {
               <div className="absolute bottom-4 right-4 w-6 h-6 border-b-2 border-r-2 border-primary" />
 
               <div className="absolute bottom-4 left-4 right-4 flex items-center justify-between z-20 pointer-events-none">
-                <span className="font-label-code-sm text-[10px] text-primary bg-surface-container-lowest/80 backdrop-blur-md px-2.5 py-1 rounded-md uppercase font-mono">
-                  FOV: 68° • ZOOM: 2.4X • SPECTRUM: PAR 720nm
+                <span className="font-label-code-sm text-[10px] text-primary bg-surface-container-lowest/80 backdrop-blur-md px-2.5 py-1 rounded-md uppercase">
+                  Optical Lens Input
                 </span>
-                <span className="font-label-code-sm text-[10px] text-secondary bg-surface-container-lowest/80 backdrop-blur-md px-2.5 py-1 rounded-md uppercase font-mono">
-                  {scanning ? 'SCANNING...' : 'OPTICAL READY'}
+                <span className="font-label-code-sm text-[10px] text-secondary bg-surface-container-lowest/80 backdrop-blur-md px-2.5 py-1 rounded-md uppercase">
+                  {scanning ? 'Analyzing symptoms...' : 'Ready for Leaf Scan'}
                 </span>
               </div>
             </div>
@@ -251,8 +251,8 @@ export default function CropDoctorPage() {
                       </h3>
                     </div>
                   </div>
-                  <span className="px-2.5 py-1 rounded-md bg-primary/15 text-primary font-label-code-sm text-xs font-bold font-mono">
-                    94% Confidence
+                  <span className="px-2.5 py-1 rounded-full bg-secondary/15 border border-secondary/30 text-secondary font-label-code-sm text-xs font-semibold">
+                    Probable Match
                   </span>
                 </div>
 

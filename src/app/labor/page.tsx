@@ -25,56 +25,9 @@ export default function FarmLaborMarketplacePage() {
       radius,
       skill: skillFilter === 'all' ? undefined : skillFilter,
     })
-      .then((res) => setWorkers(res.workers))
+      .then((res) => setWorkers(res.workers || []))
       .catch(() => {
-        // Fallback demo workers
-        setWorkers([
-          {
-            id: 'l-1',
-            name: 'Gowda Labor Team (4 Workers)',
-            phone_masked: '+91 94480 XXXXX',
-            location: 'Mandya East (3.2 km)',
-            skills: ['Trenching & Drainage', 'Weeding', 'Harvesting'],
-            dailyRate_inr: 600,
-            availability: 'available',
-            distanceKm: 3.2,
-            experience_years: 12,
-            latitude: 12.52,
-            longitude: 76.89,
-            languages: ['Kannada'],
-            _demo: true,
-          },
-          {
-            id: 'l-2',
-            name: 'Murugesan Agriculture Gang',
-            phone_masked: '+91 98800 XXXXX',
-            location: 'Maddur North (6.8 km)',
-            skills: ['Foliar Spraying', 'Pesticide Application', 'Tilling'],
-            dailyRate_inr: 650,
-            availability: 'available',
-            distanceKm: 6.8,
-            experience_years: 8,
-            latitude: 12.58,
-            longitude: 77.04,
-            languages: ['Kannada', 'Tamil'],
-            _demo: true,
-          },
-          {
-            id: 'l-3',
-            name: 'Ravi Kumar (Individual Specialist)',
-            phone_masked: '+91 97400 XXXXX',
-            location: 'Huligere Cluster (4.5 km)',
-            skills: ['Drip Irrigation Setup', 'Trellis Construction'],
-            dailyRate_inr: 750,
-            availability: 'available',
-            distanceKm: 4.5,
-            experience_years: 15,
-            latitude: 12.48,
-            longitude: 76.95,
-            languages: ['Kannada', 'English'],
-            _demo: true,
-          },
-        ])
+        setWorkers([])
       })
       .finally(() => setLoading(false))
   }

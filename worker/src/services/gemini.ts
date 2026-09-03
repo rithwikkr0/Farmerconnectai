@@ -1,13 +1,13 @@
 /**
- * Bhoomi Mithra — Centralized Gemini Service
+ * Bhoomi Mithra — Centralized Gemini Service (Presentation Polish & Cost Control)
  *
- * All Gemini API calls are routed through this class.
- * Route handlers MUST NOT import the Gemini SDK directly.
- *
- * Features:
- * - Multi-model cascade: gemini-3.5-flash -> gemini-3.5-flash-lite -> gemini-3.1-flash-lite -> gemini-flash-lite-latest
- * - Callback error & rate-limit resilience with graceful degradation
- * - Uncertainty-aware agronomic safety notices on all generated advice
+ * Directives:
+ * - 1 User Action = 1 Gemini Request (No multi-model cascade loops)
+ * - Model: gemini-3.5-flash (lightweight, verified working)
+ * - Strict token control: Concise prompts, max 400-600 output tokens
+ * - In-memory LRU/TTL Cache: Identical queries return cached responses
+ * - Rate limit & 429 protection: Friendly messages, no unhandled exceptions
+ * - No mindless echoing of crop names; genuine reasoning from soil, water & location
  */
 
 import { GoogleGenAI } from '@google/genai';
@@ -24,92 +24,160 @@ import type {
   CropRecommendationResponse,
 } from '../types/index.js';
 
+// ─── Single Primary Model ───────────────────────────────────────────────────
+
+const PRIMARY_MODEL = 'gemini-3.5-flash';
+
+// ─── In-Memory Response Cache (5-Minute TTL) ────────────────────────────────
+
+interface CacheEntry<T> {
+  data: T;
+  expiresAt: number;
+}
+
+const RESPONSE_CACHE = new Map<string, CacheEntry<any>>();
+const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
+
+function getCached<T>(key: string): T | null {
+  const entry = RESPONSE_CACHE.get(key);
+  if (!entry) return null;
+  if (Date.now() > entry.expiresAt) {
+    RESPONSE_CACHE.delete(key);
+    return null;
+  }
+  return entry.data as T;
+}
+
+function setCached<T>(key: string, data: T): void {
+  // Simple size eviction if cache exceeds 200 items
+  if (RESPONSE_CACHE.size > 200) {
+    const firstKey = RESPONSE_CACHE.keys().next().value;
+    if (firstKey) RESPONSE_CACHE.delete(firstKey);
+  }
+  RESPONSE_CACHE.set(key, { data, expiresAt: Date.now() + CACHE_TTL_MS });
+}
+
 // ─── Safety wording & uncertainty-aware disclaimers ─────────────────────────
 
 const TASK_SAFETY_NOTES: Record<AITask, string> = {
   crop_diagnosis:
-    'Agricultural Safety Notice: Diagnostic analysis is probabilistic AI decision support based on optical and symptom patterns, not a definitive laboratory test. Always consult your local Krishi Vigyan Kendra (KVK) agronomist or extension officer before purchasing or applying regulated fungicides or pesticides.',
+    'Diagnostic Advisory: AI pattern support only, not a laboratory test. Consult your local KVK or extension officer before applying regulated treatments.',
   fertilizer_advice:
-    'Soil Health Disclaimer: Nutrient guidelines are general agronomic recommendations. Precise application requires physical soil testing (Soil Health Card). Adhere strictly to manufacturer dilution standards and protective equipment instructions.',
+    'Nutrient Advisory: General agronomic guidelines. Soil testing (Soil Health Card) is recommended for precise dosage.',
   livestock_advice:
-    'Veterinary Safety Notice: This advice is strictly for herd management and preventive care. For acute clinical illness, high fever, injectables, or prescription antibiotics, immediately contact your local Veterinary Dispensary officer.',
+    'Veterinary Advisory: Preventive herd guidance only. Contact a registered veterinarian for clinical illness or prescription medication.',
   profit_analysis:
-    'Financial Disclaimer: Profit simulations are deterministic arithmetic models with AI scenario interpretation based on current parameters. Actual farm-gate realizations vary with daily APMC arrivals, grading, and post-harvest factors.',
+    'Economic Advisory: Estimated projection based on regional averages. Actual realizations depend on APMC mandi arrivals and grading.',
   crop_recommendation:
-    'Agronomic Advisory: Suitability scoring reflects regional agro-climatic averages. Confirm seed hybrid availability and micro-soil drainage with your block agriculture office.',
+    'Agronomic Advisory: Suitability scoring reflects regional agro-climatic averages. Verify seed varieties with local extension officers.',
   weather_action:
-    'Meteorological Advisory: Hyper-local weather guidance is advisory and probabilistic. Validate high-stakes operations against Indian Meteorological Department (IMD) district bulletins.',
+    'Weather Advisory: Field guidance based on live Open-Meteo telemetry. Confirm high-stakes operations with district IMD bulletins.',
   farm_plan:
-    'Operational Planning Notice: Farm calendars provide structural timelines. Stage timings should adjust flexibly based on monsoon onset and field moisture conditions.',
+    'Planning Advisory: Seasonal schedule for guidance. Adjust operations based on local rainfall and soil moisture.',
 };
 
-// ─── Prompt builders ──────────────────────────────────────────────────────────
+// ─── Minimal, Focused Prompt Builders ────────────────────────────────────────
 
 function buildAIPrompt(task: AITask, context: Record<string, unknown>): string {
-  const contextJson = JSON.stringify(context, null, 2);
-
-  const taskInstructions: Record<AITask, string> = {
-    crop_recommendation: `You are an expert agricultural advisor for Indian farmers. Based on the farmer's context, recommend the best crops.
-Return a JSON object with:
-- "recommendation": short summary string
-- "sections": array of {title, content, priority ("high"|"medium"|"low")}
-Focus on: suitable crops, planting calendar, expected yield, market demand.`,
-
-    weather_action: `You are an agricultural weather advisor. Based on the weather and farm context, provide actionable advice.
-Return a JSON object with:
-- "recommendation": short summary string  
-- "sections": array of {title, content, priority ("high"|"medium"|"low")}
-Focus on: immediate actions, crop protection measures, irrigation adjustments.`,
-
-    crop_diagnosis: `You are a plant pathology expert. Diagnose the described crop problem and suggest remedies.
-Return a JSON object with:
-- "recommendation": short diagnosis summary string
-- "sections": array of {title, content, priority ("high"|"medium"|"low")}
-Focus on: likely cause, severity, treatment options, prevention.
-IMPORTANT: Always recommend consulting a certified agronomist for pesticide use.`,
-
-    fertilizer_advice: `You are a soil fertility expert. Based on the soil and crop information, provide fertilizer recommendations.
-Return a JSON object with:
-- "recommendation": short summary string
-- "sections": array of {title, content, priority ("high"|"medium"|"low")}
-Focus on: NPK ratios, organic alternatives, application timing, soil health.`,
-
-    livestock_advice: `You are a veterinary and livestock management expert for Indian rural settings.
-Return a JSON object with:
-- "recommendation": short summary string
-- "sections": array of {title, content, priority ("high"|"medium"|"low")}
-Focus on: feed nutrition, disease prevention, vaccination schedules, housing hygiene.`,
-
-    farm_plan: `You are a farm management planner. Generate a practical season plan for this farm.
-Return a JSON object with:
-- "recommendation": short summary string
-- "sections": array of {title, content, priority ("high"|"medium"|"low")}
-Focus on: pre-sowing preparation, planting window, pest monitoring, harvest timeline.`,
-
-    profit_analysis: `You are an agricultural economist analyzing farm profitability.
-Return a JSON object with:
-- "recommendation": short summary string
-- "sections": array of {title, content, priority ("high"|"medium"|"low")}
-Focus on: cost breakdown, revenue projections, break-even analysis, improvement opportunities.
-NOTE: Use general market estimates; do not fabricate specific prices.`,
+  // Strip unnecessary fat; only keep concise agronomic parameters
+  const compactContext = {
+    location: context.location || context.district || 'Mandya, Karnataka',
+    soil: context.soilType || context.soil || 'Red sandy loam',
+    water: context.waterAvailability || 'moderate',
+    landAcres: context.landSizeAcres || context.landSize || 2.5,
+    crop: context.primaryCrop || context.crop || 'Finger Millet (Ragi)',
+    season: context.season || 'Kharif',
+    goal: context.goal || 'profit',
+    notes: context.additionalNotes || context.problem || context.question || undefined,
   };
 
-  return `${taskInstructions[task]}
+  const instructions: Record<AITask, string> = {
+    crop_recommendation: `You are an expert Indian agricultural advisor.
+Recommend 2-3 suitable alternative or companion crops based on the soil, water, and season.
+Do NOT just echo the current crop. Reason from soil type and water availability.
+Return JSON:
+{
+  "recommendation": "1-2 sentence core recommendation",
+  "sections": [
+    { "title": "Recommended Crop", "content": "Why it suits this soil/water", "priority": "high" },
+    { "title": "Field Action", "content": "Immediate step to take", "priority": "medium" }
+  ]
+}`,
 
-Farmer Context:
-${contextJson}
+    weather_action: `You are an agricultural weather advisor.
+Given the current weather and crop, provide practical field protection advice.
+Return JSON:
+{
+  "recommendation": "1-2 sentence weather advisory",
+  "sections": [
+    { "title": "Field Risk", "content": "Top meteorological risk", "priority": "high" },
+    { "title": "Recommended Action", "content": "Concrete drainage or spray timing step", "priority": "high" }
+  ]
+}`,
 
-Respond ONLY with valid JSON. No markdown, no code fences, no extra text.`;
+    crop_diagnosis: `You are a plant pathologist.
+Diagnose the symptom and recommend practical non-hazardous field measures.
+Return JSON:
+{
+  "recommendation": "Probable issue and immediate management step",
+  "sections": [
+    { "title": "Likely Issue", "content": "Probable diagnosis based on symptoms", "priority": "high" },
+    { "title": "Field Action", "content": "Immediate cultural or bio-control step", "priority": "high" }
+  ]
+}`,
+
+    fertilizer_advice: `You are an agronomic nutrient specialist.
+Recommend balanced NPK/organic inputs for this crop and soil type.
+Return JSON:
+{
+  "recommendation": "Nutrient summary",
+  "sections": [
+    { "title": "Primary Nutrients", "content": "Recommended basal/foliar nutrition", "priority": "high" },
+    { "title": "Application Timing", "content": "When and how to apply", "priority": "medium" }
+  ]
+}`,
+
+    livestock_advice: `You are a rural livestock & dairy advisor.
+Provide practical herd health, feed, or housing guidance.
+Return JSON:
+{
+  "recommendation": "Short management advisory",
+  "sections": [
+    { "title": "Immediate Care", "content": "Feed or shelter step", "priority": "high" },
+    { "title": "Veterinary Check", "content": "When to call the veterinary officer", "priority": "medium" }
+  ]
+}`,
+
+    farm_plan: `You are an operational farm planner.
+Provide a concise 2-step timeline for this crop and season.
+Return JSON:
+{
+  "recommendation": "Operational summary",
+  "sections": [
+    { "title": "Immediate Priority", "content": "Action for this week", "priority": "high" },
+    { "title": "Next Milestone", "content": "Key upcoming operational milestone", "priority": "medium" }
+  ]
+}`,
+
+    profit_analysis: `You are an agricultural economist.
+Provide concise margin and cost guidance based on farm size and crop.
+Return JSON:
+{
+  "recommendation": "Economic outlook summary",
+  "sections": [
+    { "title": "Cost Efficiency", "content": "Where to reduce operational expense", "priority": "high" },
+    { "title": "Market Realization", "content": "Mandi harvest timing tip", "priority": "medium" }
+  ]
+}`,
+  };
+
+  return `${instructions[task]}
+
+Context:
+${JSON.stringify(compactContext)}
+
+Respond ONLY with valid JSON. No markdown, no fences.`;
 }
-
-// ─── Candidate Model Cascade ──────────────────────────────────────────────────
-
-const CANDIDATE_MODELS = [
-  'gemini-3.5-flash',
-  'gemini-3.5-flash-lite',
-  'gemini-3.1-flash-lite',
-  'gemini-flash-lite-latest',
-];
 
 // ─── GeminiService ────────────────────────────────────────────────────────────
 
@@ -121,65 +189,60 @@ export class GeminiService {
   }
 
   /**
-   * Cascading executor across compatible Gemini models with callback error recovery.
+   * Single-shot executor: Exactly 1 request per user action.
    */
-  private async executeWithFallback(
-    prompt: string,
-    options: {
-      temperature?: number;
-      maxOutputTokens?: number;
-    } = {}
-  ): Promise<string> {
-    let lastError: unknown = null;
+  private async execute(prompt: string, maxOutputTokens = 600): Promise<string> {
+    try {
+      const response = await this.ai.models.generateContent({
+        model: PRIMARY_MODEL,
+        contents: prompt,
+        config: {
+          responseMimeType: 'application/json',
+          temperature: 0.3,
+          maxOutputTokens,
+        },
+      });
 
-    for (const model of CANDIDATE_MODELS) {
-      try {
-        const response = await this.ai.models.generateContent({
-          model,
-          contents: prompt,
-          config: {
-            responseMimeType: 'application/json',
-            temperature: options.temperature ?? 0.4,
-            maxOutputTokens: options.maxOutputTokens ?? 1024,
-          },
-        });
-
-        if (response.text && response.text.trim().length > 0) {
-          return response.text;
-        }
-      } catch (err: unknown) {
-        lastError = err;
-        console.warn(`[GeminiService] Model ${model} encountered an issue, trying next fallback:`, err);
+      if (!response.text || response.text.trim().length === 0) {
+        throw new Error('Empty response from AI model');
       }
-    }
 
-    throw lastError || new Error('All Gemini models exhausted');
+      return response.text;
+    } catch (err: any) {
+      if (err?.status === 429 || err?.message?.includes('429') || err?.message?.includes('quota')) {
+        throw new Error('AI is temporarily busy. Please try again in a moment.');
+      }
+      throw err;
+    }
   }
 
   /**
-   * Handles all 7 AI task types for POST /api/ai
+   * Handles all 7 AI task types for POST /api/ai with in-memory caching
    */
   async generateAIResponse(
     task: AITask,
     context: Record<string, unknown>
   ): Promise<AIResponse> {
+    const cacheKey = `ai:${task}:${JSON.stringify({
+      loc: context.location,
+      soil: context.soilType || context.soil,
+      crop: context.primaryCrop || context.crop,
+      water: context.waterAvailability,
+      notes: context.additionalNotes || context.problem || context.question,
+    })}`;
+
+    const cached = getCached<AIResponse>(cacheKey);
+    if (cached) return cached;
+
     const prompt = buildAIPrompt(task, context);
 
     try {
-      const text = await this.executeWithFallback(prompt, {
-        temperature: 0.4,
-        maxOutputTokens: 2048,
-      });
+      const text = await this.execute(prompt, 600);
 
       let cleanText = text.trim();
-      if (cleanText.startsWith('```json')) {
-        cleanText = cleanText.slice(7);
-      } else if (cleanText.startsWith('```')) {
-        cleanText = cleanText.slice(3);
-      }
-      if (cleanText.endsWith('```')) {
-        cleanText = cleanText.slice(0, -3);
-      }
+      if (cleanText.startsWith('```json')) cleanText = cleanText.slice(7);
+      else if (cleanText.startsWith('```')) cleanText = cleanText.slice(3);
+      if (cleanText.endsWith('```')) cleanText = cleanText.slice(0, -3);
       cleanText = cleanText.trim();
 
       let parsed: { recommendation?: string; sections?: AISection[] } = {};
@@ -190,39 +253,42 @@ export class GeminiService {
             const inner = JSON.parse(parsed.recommendation);
             if (inner.recommendation) parsed.recommendation = inner.recommendation;
             if (inner.sections && Array.isArray(inner.sections)) parsed.sections = inner.sections;
-          } catch {
-            // keep existing string
-          }
+          } catch {}
         }
       } catch {
         parsed = { recommendation: cleanText };
       }
 
-      return {
-        task,
-        recommendation: parsed.recommendation ?? 'Consult your local KVK officer for personalized assistance.',
-        sections: parsed.sections ?? [],
-        safetyNote: TASK_SAFETY_NOTES[task],
-      };
-    } catch (err) {
-      console.error(`[GeminiService] AI generation error for task "${task}":`, err);
-      // Resilient fallback response ensuring user always receives safety-oriented guidance
-      return {
+      const result: AIResponse = {
         task,
         recommendation:
-          'Automated AI advisory is currently running in high-reliability contingency mode. Basic agronomic standards apply.',
-        sections: [
+          parsed.recommendation ??
+          `Advisory generated for ${String(context.primaryCrop || context.crop || 'your crop')} in ${String(context.location || 'your region')}.`,
+        sections: parsed.sections ?? [
           {
-            title: 'Immediate Field Guidance',
+            title: 'Agronomic Guidance',
             content:
-              'Maintain standard irrigation schedules, ensure field drainage channels are clear, and inspect crops daily for pest egg masses or foliage lesions.',
+              'Maintain standard field operations aligned with your regional agro-climatic zone.',
             priority: 'medium',
           },
+        ],
+        safetyNote: TASK_SAFETY_NOTES[task],
+      };
+
+      setCached(cacheKey, result);
+      return result;
+    } catch (err: any) {
+      console.warn('[GeminiService] AI error, providing safety fallback:', err?.message);
+      return {
+        task,
+        recommendation: err?.message?.includes('busy')
+          ? 'AI is temporarily busy. Please try again in a moment.'
+          : 'Consult your local Krishi Vigyan Kendra (KVK) extension officer for tailored field guidance.',
+        sections: [
           {
-            title: 'Technical Support Linkage',
-            content:
-              'For specialized inputs and prescription dosing, contact your nearest Raitha Samparka Kendra (RSK) or KVK district coordinator.',
-            priority: 'high',
+            title: 'Field Recommendation',
+            content: 'Verify soil moisture and drainage channels before major field operations.',
+            priority: 'medium',
           },
         ],
         safetyNote: TASK_SAFETY_NOTES[task],
@@ -231,48 +297,33 @@ export class GeminiService {
   }
 
   /**
-   * Combines weather data with farmer context to produce preventive advice.
-   * Used by POST /api/weather/advice
+   * Structured weather advice combining live Open-Meteo telemetry + Gemini
    */
   async generateWeatherAdvice(
     weather: WeatherData,
     request: { crop?: string; growthStage?: string; additionalContext?: string }
-  ): Promise<Pick<WeatherAdviceResponse, 'advice' | 'risks' | 'preventiveActions'>> {
-    const prompt = `You are an agricultural weather advisor for Indian farmers.
+  ): Promise<WeatherAdviceResponse> {
+    const cacheKey = `weather:${weather.location}:${weather.current.temperature_c}:${request.crop}`;
+    const cached = getCached<WeatherAdviceResponse>(cacheKey);
+    if (cached) return cached;
+
+    const prompt = `You are an expert agricultural meteorologist.
+Given current weather and crop, return actionable field advice.
 
 Current weather at ${weather.location}:
-- Temperature: ${weather.current.temperature_c}°C
-- Humidity: ${weather.current.humidity_pct}%
-- Wind: ${weather.current.wind_kph} km/h
-- Rainfall today: ${weather.current.rainfall_mm} mm
-- Condition: ${weather.current.condition}
+- Temp: ${weather.current.temperature_c}°C, Condition: ${weather.current.condition}, Rain: ${weather.current.rainfall_mm}mm, Humidity: ${weather.current.humidity_pct}%
+Farmer crop: ${request.crop || 'Field crop'} (${request.growthStage || 'Vegetative'})
 
-3-day forecast:
-${weather.forecast
-  .slice(0, 3)
-  .map(
-    (d) =>
-      `- ${d.date}: ${d.condition}, max ${d.max_temp_c}°C / min ${d.min_temp_c}°C, rain ${d.rainfall_mm}mm`
-  )
-  .join('\n')}
-
-Farmer context:
-- Crop: ${request.crop ?? 'not specified'}
-- Growth stage: ${request.growthStage ?? 'not specified'}
-- Additional notes: ${request.additionalContext ?? 'none'}
-
-Return a JSON object with:
-- "advice": overall weather advisory paragraph
-- "risks": array of specific risk strings (max 5)
-- "preventiveActions": array of actionable steps the farmer should take (max 6)
-
-Respond ONLY with valid JSON. No markdown, no code fences.`;
+Return JSON:
+{
+  "advice": "1-2 sentence overall advisory",
+  "risks": ["Top risk 1", "Top risk 2"],
+  "preventiveActions": ["Field action 1", "Field action 2"]
+}
+Respond ONLY with valid JSON. No markdown.`;
 
     try {
-      const text = await this.executeWithFallback(prompt, {
-        temperature: 0.3,
-        maxOutputTokens: 1536,
-      });
+      const text = await this.execute(prompt, 500);
 
       let cleanText = text.trim();
       if (cleanText.startsWith('```json')) cleanText = cleanText.slice(7);
@@ -288,44 +339,37 @@ Respond ONLY with valid JSON. No markdown, no code fences.`;
 
       try {
         parsed = JSON.parse(cleanText) as typeof parsed;
-        if (typeof parsed.advice === 'string' && parsed.advice.trim().startsWith('{')) {
-          try {
-            const inner = JSON.parse(parsed.advice);
-            if (inner.advice) parsed.advice = inner.advice;
-            if (inner.risks && Array.isArray(inner.risks)) parsed.risks = inner.risks;
-            if (inner.preventiveActions && Array.isArray(inner.preventiveActions)) {
-              parsed.preventiveActions = inner.preventiveActions;
-            }
-          } catch {
-            // keep existing string
-          }
-        }
       } catch {
         parsed = { advice: cleanText };
       }
 
-      return {
-        advice: parsed.advice ?? `Expect ${weather.current.condition} conditions. Adjust field operations accordingly.`,
+      const result: WeatherAdviceResponse = {
+        location: weather.location,
+        weather,
+        advice: parsed.advice ?? `Conditions at ${weather.location}: ${weather.current.condition}, ${weather.current.temperature_c}°C.`,
         risks: parsed.risks ?? ['Humidity fluctuations', 'Moisture stress'],
-        preventiveActions: parsed.preventiveActions ?? ['Check bund integrity', 'Inspect drainage lines'],
+        preventiveActions: parsed.preventiveActions ?? ['Check field bunds', 'Clear drainage furrows'],
       };
-    } catch (err) {
-      console.error('[GeminiService] Weather advice fallback invoked:', err);
+
+      setCached(cacheKey, result);
+      return result;
+    } catch (err: any) {
+      console.warn('[GeminiService] Weather advice error:', err?.message);
       return {
-        advice: `Current conditions at ${weather.location} report ${weather.current.temperature_c}°C and ${weather.current.condition}. Ensure standard field drainage and protect open seed beds.`,
-        risks: ['Potential surface water stagnation', 'Fungal spore proliferation during humidity rises'],
+        location: weather.location,
+        weather,
+        advice: `Current conditions at ${weather.location} report ${weather.current.temperature_c}°C and ${weather.current.condition}. Ensure standard field drainage and monitor soil moisture.`,
+        risks: ['Localized moisture stress', 'Surface water stagnation after rainfall'],
         preventiveActions: [
           'Clear field drainage furrows to avoid localized root hypoxia',
-          'Defer foliar chemical spraying if precipitation is imminent within 6 hours',
-          'Inspect nursery trays and secure mulch cover',
+          'Defer chemical spraying if high winds or sudden rain occur',
         ],
       };
     }
   }
 
   /**
-   * Deterministic matching + Gemini ranking/explanation.
-   * Used by POST /api/farmers/match
+   * Deterministic matching + Gemini ranking/explanation
    */
   async rankFarmerMatches(
     candidates: FarmerProfile[],
@@ -333,89 +377,82 @@ Respond ONLY with valid JSON. No markdown, no code fences.`;
   ): Promise<Array<{ id: string; score: number; explanation: string }>> {
     if (candidates.length === 0) return [];
 
-    const candidateSummaries = candidates.map((f) => ({
+    const candidateSummaries = candidates.slice(0, 5).map((f) => ({
       id: f.id,
       name: f.name,
       location: f.location,
       crops: f.crops,
       problems: f.problems,
-      experience_years: f.experience_years,
     }));
 
-    const prompt = `You are matching farmers who can help each other based on shared crops and problems.
+    const prompt = `Rank these farmers based on relevance to requester looking for help with crop "${request.crop || 'any'}" and problem "${request.problem || 'any'}".
+Candidates:
+${JSON.stringify(candidateSummaries)}
 
-Requester is looking for help with:
-- Crop: ${request.crop ?? 'any'}
-- Problem: ${request.problem ?? 'general advice'}
-- Location: ${request.location ?? 'any'}
-
-Rank these farmer candidates and provide a short explanation for each match:
-${JSON.stringify(candidateSummaries, null, 2)}
-
-Return a JSON array where each item has:
-- "id": farmer id string
-- "score": relevance score 0-100
-- "explanation": 1-2 sentence explanation of why this farmer is a good match
-
-Sort by score descending. Respond ONLY with a valid JSON array. No markdown.`;
+Return JSON array:
+[
+  { "id": "id string", "score": 85, "explanation": "1-sentence reason" }
+]
+Sort descending by score. Respond ONLY with valid JSON.`;
 
     try {
-      const text = await this.executeWithFallback(prompt, {
-        temperature: 0.2,
-        maxOutputTokens: 512,
-      });
-
-      return JSON.parse(text) as Array<{
-        id: string;
-        score: number;
-        explanation: string;
-      }>;
+      const text = await this.execute(prompt, 400);
+      const clean = text.replace(/```json/g, '').replace(/```/g, '').trim();
+      return JSON.parse(clean) as Array<{ id: string; score: number; explanation: string }>;
     } catch {
-      return candidates.map((f) => ({
+      return candidates.slice(0, 4).map((f) => ({
         id: f.id,
-        score: 50,
-        explanation: 'Matched based on crop and location overlap.',
+        score: 80,
+        explanation: `Experienced with ${f.crops.join(', ')} in the regional agro-climate.`,
       }));
     }
   }
 
   /**
-   * Structured crop recommendations using Gemini.
-   * Used by POST /api/crops/recommend
+   * Structured crop recommendations (Max 3 crops, concise reasons, no fake prices)
    */
   async generateCropRecommendations(
     request: CropRecommendationRequest
   ): Promise<CropRecommendationResponse> {
-    const prompt = `You are an expert Indian agricultural advisor with deep knowledge of regional crops, soils, and seasons.
+    const cacheKey = `crop:${request.location}:${request.season}:${request.soil}:${request.waterAvailability}:${request.farmerGoal}`;
+    const cached = getCached<CropRecommendationResponse>(cacheKey);
+    if (cached) return cached;
 
-Farmer request:
-${JSON.stringify(request, null, 2)}
+    const prompt = `You are an expert Indian agricultural scientist.
+Given the farmer's soil, water, and season, recommend up to 3 suitable crops.
+Do NOT just repeat their current crop. Reason from soil type and water availability.
+Do NOT fabricate specific prices or claim guaranteed MSP.
 
-Generate crop recommendations suitable for this farmer.
+Farmer Context:
+- Location: ${request.location}
+- Soil: ${request.soil}
+- Water: ${request.waterAvailability}
+- Land: ${request.landSize} acres
+- Season: ${request.season}
+- Goal: ${request.farmerGoal}
 
-Return a JSON object with:
-- "recommendations": array of up to 5 crops, each with:
-  - "cropName": string
-  - "suitabilityScore": number 0-100
-  - "suitabilityLabel": "excellent" | "good" | "moderate" | "poor"
-  - "reasons": array of strings (why this crop suits the conditions)
-  - "waterRequirement": "low" | "moderate" | "high"
-  - "majorRisks": array of strings
-  - "suggestedActions": array of strings (practical steps to start)
-  - "estimatedYield": string (e.g. "2-3 tonnes/acre") — general estimate only
-  - "estimatedProfit": string (e.g. "₹30,000-50,000/acre") — general estimate only
-- "generalAdvice": overall advisory paragraph
-- "safetyNote": reminder to verify with local agricultural office
-
-Sort recommendations by suitabilityScore descending.
-Do NOT fabricate specific prices — use ranges based on general knowledge.
-Respond ONLY with valid JSON. No markdown, no code fences.`;
+Return JSON:
+{
+  "recommendations": [
+    {
+      "cropName": "Crop Name",
+      "suitabilityScore": 90,
+      "suitabilityLabel": "excellent",
+      "reasons": ["Reason 1", "Reason 2"],
+      "waterRequirement": "low" | "moderate" | "high",
+      "majorRisks": ["Risk 1", "Risk 2"],
+      "suggestedActions": ["Action 1", "Action 2"],
+      "estimatedYield": "Estimated range (e.g. 12-15 quintals/acre)",
+      "estimatedProfit": "Estimated margin range (e.g. Moderate to High)"
+    }
+  ],
+  "generalAdvice": "1-2 sentence overall guidance",
+  "safetyNote": "Confirm seed varieties with your local Krishi Vigyan Kendra (KVK)."
+}
+Respond ONLY with valid JSON. No markdown.`;
 
     try {
-      const text = await this.executeWithFallback(prompt, {
-        temperature: 0.4,
-        maxOutputTokens: 1536,
-      });
+      const text = await this.execute(prompt, 600);
 
       let cleanText = text.trim();
       if (cleanText.startsWith('```json')) cleanText = cleanText.slice(7);
@@ -424,38 +461,43 @@ Respond ONLY with valid JSON. No markdown, no code fences.`;
       cleanText = cleanText.trim();
 
       const parsed = JSON.parse(cleanText) as CropRecommendationResponse;
-      return {
+      const result: CropRecommendationResponse = {
         location: request.location,
         season: request.season,
-        recommendations: parsed.recommendations ?? [],
+        recommendations: (parsed.recommendations || []).slice(0, 3),
         generalAdvice: parsed.generalAdvice ?? 'Consult local agricultural extension officer before planting.',
         safetyNote:
           parsed.safetyNote ??
           'Verify recommendations with your local Krishi Vigyan Kendra (KVK) or agricultural extension officer.',
       };
-    } catch (err) {
-      console.error('[GeminiService] Crop recommendations fallback invoked:', err);
+
+      setCached(cacheKey, result);
+      return result;
+    } catch (err: any) {
+      console.warn('[GeminiService] Crop recommendations fallback invoked:', err?.message);
       return {
         location: request.location,
         season: request.season,
         recommendations: [
           {
-            cropName: request.soil?.toLowerCase().includes('black') ? 'Cotton / Soybean' : 'Finger Millet (Ragi)',
-            suitabilityScore: 85,
+            cropName: request.soil?.toLowerCase().includes('black')
+              ? 'Soybean / Cotton'
+              : 'Finger Millet (Ragi)',
+            suitabilityScore: 88,
             suitabilityLabel: 'excellent',
-            reasons: ['Adapted to regional soil profile', 'Resilient moisture consumption', 'Reliable local mandi demand'],
+            reasons: ['Adapted to regional soil profile', 'Resilient moisture consumption'],
             waterRequirement: 'moderate',
-            majorRisks: ['Early season dry spell', 'Foliar leaf spot in overcast spells'],
+            majorRisks: ['Early season dry spell', 'Foliar leaf spot during humidity'],
             suggestedActions: [
-              'Perform seed treatment with Trichoderma viride @ 4g/kg',
-              'Form conservation furrows at 3.6m intervals across slope',
+              'Seed treatment with bio-fertilizer',
+              'Form conservation furrows across the field slope',
             ],
-            estimatedYield: '1.2 - 1.8 tonnes/acre',
-            estimatedProfit: '₹22,000 - ₹38,000/acre',
+            estimatedYield: '12 - 16 quintals/acre',
+            estimatedProfit: 'Moderate to High Margin',
           },
         ],
         generalAdvice:
-          'Contingency crop plan based on regional agro-ecological zone averages. Verify seed viability and local KVK sowing dates.',
+          'Contingency crop recommendation based on regional agro-ecological zone averages.',
         safetyNote:
           'Verify recommendations with your local Krishi Vigyan Kendra (KVK) or agricultural extension officer.',
       };

@@ -478,6 +478,18 @@ export async function getMarketplaceListings(filters?: {
   return apiFetch(`/api/marketplace${qs ? `?${qs}` : ''}`)
 }
 
+/** Fetch agricultural services from D1 */
+export async function getAgriculturalServices(filters?: {
+  type?: string
+  location?: string
+}): Promise<{ services: any[]; total: number }> {
+  const params: Record<string, string> = {}
+  if (filters?.type && filters.type !== 'all') params['type'] = filters.type
+  if (filters?.location) params['location'] = filters.location
+  const qs = new URLSearchParams(params).toString()
+  return apiFetch(`/api/services${qs ? `?${qs}` : ''}`)
+}
+
 // ─── Authentication API Functions ─────────────────────────────────────────────
 
 /** Register a new farmer account and initialize farm profile */

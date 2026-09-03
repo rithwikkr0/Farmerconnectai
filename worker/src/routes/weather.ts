@@ -295,8 +295,6 @@ export async function handleWeatherAdvice(
     const adviceResult = await gemini.generateWeatherAdvice(weather, adviceOptions);
 
     const responseData: WeatherAdviceResponse = {
-      location: weather.location,
-      weather,
       ...adviceResult,
       safetyNote:
         'Weather predictions and agronomic advisories are advisory estimates. Check regional IMD bulletins before making high-stakes chemical or harvesting commitments.',

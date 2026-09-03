@@ -21,53 +21,11 @@ export default function FindFarmerPage() {
     setLoading(true)
     matchFarmers({ crop, location, problem: problem || undefined })
       .then((res) => {
-        setMatches(res.matches)
+        setMatches(res.matches || [])
         setIsDemo(Boolean(res._demo))
       })
       .catch(() => {
-        // Fallback
-        setMatches([
-          {
-            farmer: {
-              id: 'f-1',
-              name: 'Ramesh Patel',
-              location: 'Mandya Rural',
-              latitude: 12.52,
-              longitude: 76.89,
-              crops: ['Tomato', 'Chilli', 'Capsicum'],
-              problems: ['Early Blight', 'Drip Fertigation'],
-              experience_years: 14,
-              land_size_acres: 6.0,
-              phone_masked: '+91 98450 XXXXX',
-              bio: 'Experienced tomato and chilli grower with deep knowledge in drip fertigation and fungal recovery.',
-              _demo: true,
-            },
-            matchScore: 96,
-            matchReasons: ['Grows exact hybrid tomato variety', 'Solved early blight using bio-fungicide'],
-            distanceKm: 3.8,
-            geminiExplanation: 'Matches your current soil type and crop phase. Excellent peer reference for blight treatment.',
-          },
-          {
-            farmer: {
-              id: 'f-2',
-              name: 'Kavitha R.',
-              location: 'Maddur Sector',
-              latitude: 12.58,
-              longitude: 77.04,
-              crops: ['Tomato', 'Pulses'],
-              problems: ['Soil Salinity', 'Organic Pest Control'],
-              experience_years: 9,
-              land_size_acres: 4.5,
-              phone_masked: '+91 97420 XXXXX',
-              bio: 'Specialist in organic bio-pesticide formulations and soil regenerative techniques.',
-              _demo: true,
-            },
-            matchScore: 88,
-            matchReasons: ['Adjacent sector node', 'Proven success in pulse-tomato crop rotation'],
-            distanceKm: 7.4,
-            geminiExplanation: 'Highly rated peer for organic remedies and low-water crop alternatives.',
-          },
-        ])
+        setMatches([])
       })
       .finally(() => setLoading(false))
   }
@@ -83,19 +41,19 @@ export default function FindFarmerPage() {
         <div className="flex flex-wrap items-center justify-between gap-4 pb-2 border-b border-outline-variant/30">
           <div className="flex flex-col gap-1">
             <div className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-              <span className="font-label-code-sm text-xs text-primary uppercase font-bold tracking-wider">
-                Peer Matching Engine // Geolocation Active
+              <span className="w-2 h-2 rounded-full bg-teal-400 animate-pulse" />
+              <span className="font-label-code-sm text-xs text-teal-400 uppercase font-bold tracking-wider">
+                Agronomic Peer Network
               </span>
             </div>
-            <h1 className="font-headline-lg text-2xl sm:text-3xl font-bold text-on-surface tracking-tight">
-              Find a Farmer Who Can Help Me
+            <h1 className="font-headline-lg text-2xl sm:text-3xl font-bold text-white tracking-tight">
+              Farmers with Relevant Experience
             </h1>
           </div>
 
           <div className="flex items-center gap-2">
-            <span className="px-3 py-1 rounded-full bg-surface-container-high border border-primary/20 font-label-code-sm text-xs text-primary font-bold">
-              DEMO DATA
+            <span className="px-3 py-1 rounded-full bg-surface-container-high border border-teal-500/30 font-label-code-sm text-xs text-teal-400 font-bold uppercase">
+              {isDemo ? 'EXAMPLE PEER PROFILES' : 'VERIFIED NETWORK'}
             </span>
           </div>
         </div>

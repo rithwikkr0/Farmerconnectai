@@ -1,7 +1,8 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import Link from 'next/link'
+import { toast } from 'sonner'
 import { StitchShell } from '@/components/layout/stitch-shell'
 import { FarmTerrainTwin } from '@/components/three/farm-terrain-twin'
 import { useFarmContext } from '@/hooks/use-farm-context'
@@ -9,99 +10,49 @@ import { recommendCrops } from '@/lib/api'
 import type { CropRecommendation } from '@/lib/api'
 
 export default function CropIntelligencePage() {
-  const { context } = useFarmContext()
+  const { context, user, farmProfile } = useFarmContext()
   const [recommendations, setRecommendations] = useState<CropRecommendation[]>([])
   const [loading, setLoading] = useState(false)
-  const [activeCategory, setActiveCategory] = useState('all')
+  const [hasAnalyzed, setHasAnalyzed] = useState(false)
 
-  const farmLocation = context.location || 'Mandya, Karnataka'
-  const soilType = context.soilType || 'Loamy'
-  const landSize = context.landSizeAcres || 5.5
-  const water = context.waterAvailability || 'moderate'
-  const season = context.season || 'Kharif'
+  const farmLocation = farmProfile?.location || context.location || 'Mandya, Karnataka'
+  const soilType = farmProfile?.soil_type || context.soilType || 'Red sandy loam'
+  const landSize = farmProfile?.land_size_acres || context.landSizeAcres || 3.5
+  const water = farmProfile?.water_availability || context.waterAvailability || 'moderate'
+  const season = farmProfile?.season || context.season || 'Kharif'
+  const currentCrop = farmProfile?.current_crop || context.primaryCrop || 'Finger Millet (Ragi)'
 
-  useEffect(() => {
+  const handleAnalyzeFarm = async () => {
     setLoading(true)
-    recommendCrops({
-      location: farmLocation,
-      soil: soilType,
-      waterAvailability: water,
-      landSize: landSize,
-      season: season,
-      farmerGoal: 'profit',
-    })
-      .then((res) => {
-        setRecommendations(res.recommendations)
+    try {
+      const res = await recommendCrops({
+        location: farmLocation,
+        soil: soilType,
+        waterAvailability: (water.toLowerCase() === 'high' ? 'high' : water.toLowerCase() === 'low' ? 'low' : 'moderate') as 'low' | 'moderate' | 'high',
+        landSize: Number(landSize),
+        season: season,
+        farmerGoal: (farmProfile?.farming_goal || context.goal || 'profit') as any,
       })
-      .catch(() => {
-        // Fallback demo crops
-        setRecommendations([
-          {
-            cropName: 'Tomato (Hybrid Arka Rakshak)',
-            suitabilityLabel: 'excellent',
-            suitabilityScore: 94,
-            reasons: [
-              'Optimal thermal match with Kharif monsoon windows',
-              'Loamy soil provides high aeration preventing premature root rot',
-              'Wholesale terminal prices hovering at ₹38/kg spot rate',
-            ],
-            waterRequirement: 'moderate',
-            majorRisks: ['Waterlogging in low-lying bunds', 'Early fungal blight in high humidity'],
-            suggestedActions: [
-              'Construct 30cm raised planting beds',
-              'Schedule copper-based bio-fungicide protective drenching',
-            ],
-            estimatedYield: '12 tons / acre',
-            estimatedProfit: '₹83,000 / acre net',
-          },
-          {
-            cropName: 'Groundnut (TMV-2)',
-            suitabilityLabel: 'good',
-            suitabilityScore: 86,
-            reasons: [
-              'Excellent nitrogen-fixing root nodules enrich loamy soil matrix',
-              'Low-to-moderate water requirement ensures survival in case of rain delay',
-              'Guaranteed MSP procurement at regional APMC yards',
-            ],
-            waterRequirement: 'low',
-            majorRisks: ['Tikka leaf spot under continuous rainfall', 'Pod borer attack during pod fill'],
-            suggestedActions: [
-              'Seed treatment with Trichoderma viride',
-              'Maintain gypsum application at flowering stage',
-            ],
-            estimatedYield: '1.8 tons / acre',
-            estimatedProfit: '₹47,000 / acre net',
-          },
-          {
-            cropName: 'Finger Millet (Ragi GPU-28)',
-            suitabilityLabel: 'good',
-            suitabilityScore: 82,
-            reasons: [
-              'Resilient drought-tolerant cereal with high nutritional profile',
-              'Thrives in local agro-climatic conditions with minimal fertilizer dependency',
-              'Growing consumer demand for diabetic-friendly whole grains',
-            ],
-            waterRequirement: 'low',
-            majorRisks: ['Blast disease in cloudy humid weather'],
-            suggestedActions: ['Apply bio-fertilizer Azospirillum at sowing', 'Timely weeding at 25 DAS'],
-            estimatedYield: '1.4 tons / acre',
-            estimatedProfit: '₹34,000 / acre net',
-          },
-        ])
-      })
-      .finally(() => setLoading(false))
-  }, [farmLocation, soilType, water, landSize, season])
+      setRecommendations(res.recommendations || [])
+      setHasAnalyzed(true)
+      toast.success('Crop recommendations generated by Gemini AI!')
+    } catch (err: any) {
+      toast.error(err?.message || 'Could not complete farm analysis. Please try again.')
+    } finally {
+      setLoading(false)
+    }
+  }
 
   return (
     <StitchShell>
       <div className="w-full max-w-[1680px] mx-auto px-4 sm:px-6 lg:px-12 py-6 flex flex-col gap-8">
-        {/* Top Header & Sub-Nav */}
+        {/* Top Header & Context Badges */}
         <div className="flex flex-wrap items-center justify-between gap-4 pb-2 border-b border-outline-variant/30">
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-2 bg-surface-container-high/80 border border-primary/25 px-3 py-1 rounded-full shadow-sm">
-              <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+              <span className="w-2 h-2 rounded-full bg-primary" />
               <span className="font-label-code-sm text-xs text-primary uppercase font-bold">
-                Bio-Mesh Sector 07-Gamma
+                Crop Intelligence
               </span>
             </div>
             <div className="flex items-center gap-2 bg-surface-container/60 border border-outline-variant/30 px-3 py-1 rounded-full text-on-surface-variant font-label-code-sm text-xs">
@@ -115,267 +66,236 @@ export default function CropIntelligencePage() {
             className="px-4 py-1.5 rounded-full bg-primary-container text-on-primary-container font-label-code-sm text-xs uppercase font-bold shadow-md hover:scale-105 transition-all flex items-center gap-2"
           >
             <span className="material-symbols-outlined text-sm">psychology</span>
-            <span>Ask AI Copilot for Custom Mix</span>
+            <span>Ask AI Copilot</span>
           </Link>
         </div>
 
-        {/* 1. HERO SECTION: 3D CANOPY SCENE & CONDITIONS OVERLAY GRID */}
+        {/* Hero Section: 3D Twin & Farm Context Summary */}
         <div className="grid grid-cols-1 xl:grid-cols-12 gap-8 items-start">
-          {/* Left / Center: 3D Holographic Spatial Canvas (7 Cols) */}
+          {/* Left: 3D Canvas */}
           <div className="xl:col-span-7 flex flex-col gap-4">
-            <div className="flex flex-col gap-2">
-              <div className="flex items-center gap-3">
-                <span className="px-3 py-1 rounded-full bg-secondary-container/60 text-on-secondary-container font-label-code-sm text-[10px] tracking-wider uppercase font-bold">
-                  Quantum Model v4.9 Active
-                </span>
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary-container/30 text-primary font-label-code-sm text-[10px] font-bold">
-                  <span className="w-1.5 h-1.5 rounded-full bg-primary animate-ping" />
-                  ANALYSIS COMPLETE • 99.4% CONFIDENCE
-                </span>
-              </div>
-              <h1 className="font-headline-lg text-2xl sm:text-3xl font-bold text-on-surface tracking-tight">
-                What should you grow?
+            <div className="flex flex-col gap-1">
+              <h1 className="font-headline-lg text-2xl sm:text-3xl font-bold text-white tracking-tight">
+                Crop Suitability Advisor
               </h1>
               <p className="font-body-md text-sm text-on-surface-variant max-w-xl">
-                Farm AI synthesizes sub-strata chemistry, micro-climates, regional yields, and hyper-local mandi price trends to calibrate maximum net margin.
+                Bhoomi Mithra analyzes your regional soil profile, seasonal rainfall, and acreage to recommend viable alternatives.
               </p>
             </div>
 
-            {/* 3D Scene Viewport with Holographic Overlays */}
             <div className="relative w-full rounded-3xl overflow-hidden bg-surface-container-low border border-primary/25 shadow-2xl p-3">
-              <div className="w-full h-[460px] rounded-2xl relative overflow-hidden bg-surface-container-lowest">
-                <FarmTerrainTwin height={460} cropName="Tomato" />
-
-                {/* Overlays */}
+              <div className="w-full h-[360px] sm:h-[420px] rounded-2xl relative overflow-hidden bg-surface-container-lowest">
+                <FarmTerrainTwin height={420} cropName={currentCrop} />
                 <div className="absolute top-4 left-4 z-20 px-3 py-1.5 rounded-xl bg-surface-container-lowest/80 border border-primary/20 backdrop-blur-md flex items-center gap-2">
                   <span className="w-2 h-2 rounded-full bg-primary" />
-                  <span className="font-label-code-sm text-[10px] text-on-surface uppercase font-bold">
-                    CANOPY VIGOR: 89%
-                  </span>
-                </div>
-
-                <div className="absolute top-4 right-4 z-20 px-3 py-1.5 rounded-xl bg-surface-container-lowest/80 border border-secondary/20 backdrop-blur-md flex items-center gap-2">
-                  <span className="material-symbols-outlined text-secondary text-sm">water_drop</span>
-                  <span className="font-label-code-sm text-[10px] text-secondary uppercase font-bold">
-                    MOISTURE: {soilType.toUpperCase()} 74%
+                  <span className="font-label-code-sm text-[10px] text-white uppercase font-bold">
+                    Target: {currentCrop}
                   </span>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Right Column: Your Farm Conditions (5 Cols) */}
+          {/* Right: Saved Conditions Card + CTA */}
           <div className="xl:col-span-5 flex flex-col gap-4">
-            <div className="flex items-center justify-between pb-1">
-              <div className="flex flex-col">
-                <h2 className="font-headline-sm text-lg font-bold text-on-surface">Your Farm Conditions</h2>
-                <span className="font-label-code-sm text-[10px] text-on-surface-variant uppercase font-mono">
-                  Sync Source: Local Profile • Sector 07-Gamma
+            <div className="bg-surface-container-low/70 backdrop-blur-2xl border border-outline-variant/30 rounded-3xl p-6 shadow-xl space-y-6">
+              <div className="flex items-center justify-between border-b border-outline-variant/20 pb-3">
+                <h2 className="font-headline-sm text-lg font-bold text-white flex items-center gap-2">
+                  <span className="material-symbols-outlined text-primary text-xl">tune</span>
+                  Active Farm Profile
+                </h2>
+                <span className="px-2.5 py-0.5 rounded-full bg-primary/20 border border-primary/40 text-primary text-[10px] font-label-code-sm uppercase font-bold">
+                  {user ? 'D1 Synchronized' : 'Profile Node'}
                 </span>
               </div>
 
-              <Link
-                href="/setup"
-                className="px-3 py-1.5 rounded-xl bg-surface-container-high hover:bg-surface-container-highest text-secondary font-label-code-sm text-xs transition-all flex items-center gap-1.5"
+              <div className="grid grid-cols-2 gap-3 text-xs">
+                <div className="p-3 rounded-2xl bg-surface-container-high/60 border border-outline-variant/30">
+                  <span className="block text-[10px] uppercase font-label-code-sm text-on-surface-variant mb-1">
+                    Location
+                  </span>
+                  <span className="font-bold text-on-surface truncate block">{farmLocation}</span>
+                </div>
+
+                <div className="p-3 rounded-2xl bg-surface-container-high/60 border border-outline-variant/30">
+                  <span className="block text-[10px] uppercase font-label-code-sm text-on-surface-variant mb-1">
+                    Soil Profile
+                  </span>
+                  <span className="font-bold text-on-surface truncate block">{soilType}</span>
+                </div>
+
+                <div className="p-3 rounded-2xl bg-surface-container-high/60 border border-outline-variant/30">
+                  <span className="block text-[10px] uppercase font-label-code-sm text-on-surface-variant mb-1">
+                    Land Size
+                  </span>
+                  <span className="font-bold text-primary truncate block">{landSize} Acres</span>
+                </div>
+
+                <div className="p-3 rounded-2xl bg-surface-container-high/60 border border-outline-variant/30">
+                  <span className="block text-[10px] uppercase font-label-code-sm text-on-surface-variant mb-1">
+                    Water Access
+                  </span>
+                  <span className="font-bold text-secondary truncate block capitalize">{water}</span>
+                </div>
+
+                <div className="p-3 rounded-2xl bg-surface-container-high/60 border border-outline-variant/30">
+                  <span className="block text-[10px] uppercase font-label-code-sm text-on-surface-variant mb-1">
+                    Season
+                  </span>
+                  <span className="font-bold text-on-surface truncate block">{season}</span>
+                </div>
+
+                <div className="p-3 rounded-2xl bg-surface-container-high/60 border border-outline-variant/30">
+                  <span className="block text-[10px] uppercase font-label-code-sm text-on-surface-variant mb-1">
+                    Current Crop
+                  </span>
+                  <span className="font-bold text-secondary truncate block">{currentCrop}</span>
+                </div>
+              </div>
+
+              {/* Action Button: 1 Click = 1 Request */}
+              <button
+                type="button"
+                onClick={handleAnalyzeFarm}
+                disabled={loading}
+                className="w-full py-4 rounded-2xl bg-gradient-to-r from-primary to-primary-container text-surface font-bold text-sm tracking-wider uppercase shadow-[0_0_20px_rgba(112,96,249,0.4)] hover:shadow-[0_0_30px_rgba(112,96,249,0.6)] transition-all flex items-center justify-center gap-2"
               >
-                <span className="material-symbols-outlined text-sm">edit</span>
-                <span>Edit Data</span>
-              </Link>
-            </div>
-
-            {/* Conditions 6-Cell Grid */}
-            <div className="grid grid-cols-2 gap-3">
-              <div className="bg-surface-container/70 border border-outline-variant/30 p-3.5 rounded-2xl flex flex-col gap-1 shadow-sm">
-                <div className="flex items-center justify-between text-on-surface-variant">
-                  <span className="font-label-code-sm text-[10px] uppercase tracking-wider">Spatial Plot</span>
-                  <span className="material-symbols-outlined text-sm text-primary">aspect_ratio</span>
-                </div>
-                <div className="font-headline-sm text-base text-on-surface font-bold">{landSize} Acres</div>
-                <span className="font-label-code-sm text-[10px] text-on-surface-variant">{farmLocation}</span>
-              </div>
-
-              <div className="bg-surface-container/70 border border-outline-variant/30 p-3.5 rounded-2xl flex flex-col gap-1 shadow-sm">
-                <div className="flex items-center justify-between text-on-surface-variant">
-                  <span className="font-label-code-sm text-[10px] uppercase tracking-wider">Soil Profile</span>
-                  <span className="material-symbols-outlined text-sm text-secondary">science</span>
-                </div>
-                <div className="font-headline-sm text-base text-on-surface font-bold">{soilType} Soil</div>
-                <span className="font-label-code-sm text-[10px] text-primary">Organic Carbon: 0.62%</span>
-              </div>
-
-              <div className="bg-surface-container/70 border border-outline-variant/30 p-3.5 rounded-2xl flex flex-col gap-1 shadow-sm">
-                <div className="flex items-center justify-between text-on-surface-variant">
-                  <span className="font-label-code-sm text-[10px] uppercase tracking-wider">Hydration Vector</span>
-                  <span className="material-symbols-outlined text-sm text-primary">waves</span>
-                </div>
-                <div className="font-headline-sm text-base text-on-surface font-bold capitalize">{water} Flow</div>
-                <span className="font-label-code-sm text-[10px] text-on-surface-variant">Borewell + Canal Sync</span>
-              </div>
-
-              <div className="bg-surface-container/70 border border-outline-variant/30 p-3.5 rounded-2xl flex flex-col gap-1 shadow-sm">
-                <div className="flex items-center justify-between text-on-surface-variant">
-                  <span className="font-label-code-sm text-[10px] uppercase tracking-wider">Phenology Cycle</span>
-                  <span className="material-symbols-outlined text-sm text-secondary">date_range</span>
-                </div>
-                <div className="font-headline-sm text-base text-on-surface font-bold">{season} Active</div>
-                <span className="font-label-code-sm text-[10px] text-on-surface-variant">Optimal Sowing Window</span>
-              </div>
-
-              <div className="bg-surface-container/70 border border-outline-variant/30 p-3.5 rounded-2xl flex flex-col gap-1 shadow-sm">
-                <div className="flex items-center justify-between text-on-surface-variant">
-                  <span className="font-label-code-sm text-[10px] uppercase tracking-wider">Standing Biomass</span>
-                  <span className="material-symbols-outlined text-sm text-primary">potted_plant</span>
-                </div>
-                <div className="font-headline-sm text-base text-on-surface font-bold truncate">
-                  {context.primaryCrop || 'None'}
-                </div>
-                <span className="font-label-code-sm text-[10px] text-secondary">Primary Rotation</span>
-              </div>
-
-              <div className="bg-surface-container/70 border border-outline-variant/30 p-3.5 rounded-2xl flex flex-col gap-1 shadow-sm">
-                <div className="flex items-center justify-between text-on-surface-variant">
-                  <span className="font-label-code-sm text-[10px] uppercase tracking-wider">CapEx Budget</span>
-                  <span className="material-symbols-outlined text-sm text-secondary">account_balance_wallet</span>
-                </div>
-                <div className="font-headline-sm text-base text-on-surface font-bold font-mono">₹1,50,000</div>
-                <span className="font-label-code-sm text-[10px] text-on-surface-variant">Flexible Working Capital</span>
-              </div>
-            </div>
-
-            {/* Weather Alert Strip */}
-            <div className="bg-surface-container-high/60 border border-error/30 p-4 rounded-2xl flex items-center justify-between shadow-md">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-surface-container flex items-center justify-center text-primary">
-                  <span className="material-symbols-outlined text-2xl">thunderstorm</span>
-                </div>
-                <div className="flex flex-col">
-                  <span className="font-body-sm text-xs font-semibold text-on-surface">
-                    Monsoon Trajectory Approaching
-                  </span>
-                  <span className="font-label-code-sm text-[10px] text-on-surface-variant">
-                    +18mm rain expected across next 72 hours
-                  </span>
-                </div>
-              </div>
-              <span className="font-label-code-sm text-xs font-bold text-primary font-mono">94% PROB</span>
+                {loading ? (
+                  <>
+                    <span className="material-symbols-outlined animate-spin text-lg">progress_activity</span>
+                    <span>Analyzing Farm with Gemini...</span>
+                  </>
+                ) : (
+                  <>
+                    <span className="material-symbols-outlined text-lg">psychology</span>
+                    <span>Analyze My Farm</span>
+                  </>
+                )}
+              </button>
             </div>
           </div>
         </div>
 
-        {/* 2. AI CROP RECOMMENDATIONS CARDS */}
-        <div className="flex flex-col gap-6 pt-4">
-          <div className="flex items-center justify-between flex-wrap gap-2">
+        {/* Results Section */}
+        <div className="space-y-6 pt-4">
+          <div className="flex items-center justify-between border-b border-outline-variant/20 pb-3">
             <div>
-              <h2 className="font-headline-md text-xl font-bold text-on-surface">
-                Recommended Crops for Your Soil &amp; Season
+              <h2 className="font-headline-sm text-xl text-white font-bold flex items-center gap-2">
+                <span className="material-symbols-outlined text-secondary text-2xl">grain</span>
+                Recommended Crops
               </h2>
-              <p className="font-body-md text-xs text-on-surface-variant">
-                Calibrated against {soilType.toLowerCase()} soil chemistry, local wholesale terminal trends, and current monsoon cycles.
+              <p className="text-xs text-on-surface-variant">
+                Derived from soil moisture capacity, regional mandi demand, and season window.
               </p>
             </div>
-            <div className="flex items-center gap-2 text-on-surface-variant font-label-code-sm text-xs">
-              <span className="w-2 h-2 rounded-full bg-primary" />
-              <span>Ranked by Synthetic Agronomic Index</span>
-            </div>
+            {hasAnalyzed && (
+              <span className="px-3 py-1 rounded-full bg-secondary/10 border border-secondary/30 text-secondary text-xs font-label-code-sm uppercase font-semibold">
+                AI Generated
+              </span>
+            )}
           </div>
 
-          {loading ? (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {[1, 2, 3].map((i) => (
-                <div key={i} className="h-72 rounded-3xl bg-surface-container/60 border border-primary/20 animate-pulse" />
-              ))}
+          {!hasAnalyzed ? (
+            <div className="p-12 rounded-3xl bg-surface-container-low/50 border border-outline-variant/20 text-center space-y-4">
+              <div className="w-16 h-16 rounded-2xl bg-surface-container-high mx-auto flex items-center justify-center text-primary">
+                <span className="material-symbols-outlined text-3xl">psychiatry</span>
+              </div>
+              <h3 className="font-headline-sm text-lg text-white font-bold">
+                Farm Parameters Ready for Analysis
+              </h3>
+              <p className="text-sm text-on-surface-variant max-w-md mx-auto">
+                Click <strong className="text-white">&ldquo;Analyze My Farm&rdquo;</strong> above to generate real-time suitability scores and crop recommendations using Google Gemini AI.
+              </p>
+            </div>
+          ) : recommendations.length === 0 ? (
+            <div className="p-8 rounded-3xl bg-surface-container-low/50 border border-outline-variant/20 text-center">
+              <p className="text-sm text-on-surface-variant">
+                No verified crop recommendations returned. Consult your local extension office.
+              </p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch">
-              {recommendations.map((crop, idx) => {
-                const score = crop.suitabilityScore ?? 90 - idx * 6
-                return (
-                  <div
-                    key={crop.cropName}
-                    className="relative bg-surface-container-low/90 border border-primary/20 backdrop-blur-xl p-6 rounded-3xl flex flex-col justify-between gap-6 shadow-xl hover:border-primary transition-all group"
-                  >
-                    <div className="flex flex-col gap-4">
-                      <div className="flex items-start justify-between">
-                        <div className="flex flex-col">
-                          <div className="flex items-center gap-2">
-                            <span
-                              className={`px-2.5 py-0.5 rounded-full font-label-code-sm text-[9px] font-bold tracking-wider uppercase ${
-                                idx === 0
-                                   ? 'bg-primary text-on-primary shadow-[0_0_8px_rgba(198,192,255,0.4)]'
-                                  : 'bg-surface-container-high text-secondary'
-                              }`}
-                            >
-                              {crop.suitabilityLabel.toUpperCase()}
-                            </span>
-                            <span className="font-label-code-sm text-xs text-secondary font-bold font-mono">
-                              #{String(idx + 1).padStart(2, '0')} RANK
-                            </span>
-                          </div>
-                          <h3 className="font-headline-sm text-xl text-on-surface font-bold mt-1.5">{crop.cropName}</h3>
-                        </div>
-
-                        {/* Circular Score Indicator */}
-                        <div className="w-14 h-14 rounded-2xl bg-surface-container-highest/80 border border-primary/30 flex flex-col items-center justify-center shrink-0">
-                          <span className="font-headline-sm text-sm text-primary font-bold font-mono">{score}%</span>
-                          <span className="font-label-code-sm text-[8px] text-on-surface-variant uppercase">FIT</span>
-                        </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {recommendations.map((crop, idx) => (
+                <div
+                  key={idx}
+                  className="bg-surface-container-low/80 backdrop-blur-xl border border-outline-variant/30 rounded-3xl p-6 shadow-xl space-y-5 hover:border-primary/50 transition-all flex flex-col justify-between"
+                >
+                  <div className="space-y-4">
+                    <div className="flex items-start justify-between gap-2">
+                      <div>
+                        <span className="text-[10px] font-label-code-sm text-secondary uppercase tracking-widest font-bold">
+                          Option #{idx + 1}
+                        </span>
+                        <h3 className="font-headline-sm text-xl text-white font-bold mt-0.5">
+                          {crop.cropName}
+                        </h3>
                       </div>
-
-                      <p className="font-body-sm text-xs text-on-surface-variant leading-relaxed">
-                        {crop.reasons[0] ?? 'High compatibility with regional soil and current season temperature trends.'}
-                      </p>
-
-                      {/* Telemetry Matrix */}
-                      <div className="grid grid-cols-2 gap-2 pt-1 font-body-sm text-xs">
-                        <div className="bg-surface-container/60 border border-outline-variant/20 p-2.5 rounded-xl flex flex-col">
-                          <span className="font-label-code-sm text-[9px] text-on-surface-variant uppercase">Water Vector</span>
-                          <span className="text-on-surface font-semibold capitalize">{crop.waterRequirement}</span>
-                        </div>
-                        <div className="bg-surface-container/60 border border-outline-variant/20 p-2.5 rounded-xl flex flex-col">
-                          <span className="font-label-code-sm text-[9px] text-on-surface-variant uppercase">Suitability</span>
-                          <span className="text-on-surface font-semibold capitalize">{crop.suitabilityLabel}</span>
-                        </div>
-                        <div className="bg-surface-container/60 border border-outline-variant/20 p-2.5 rounded-xl flex flex-col">
-                          <span className="font-label-code-sm text-[9px] text-on-surface-variant uppercase">Est. Yield</span>
-                          <span className="text-on-surface font-semibold">{crop.estimatedYield || 'Standard'}</span>
-                        </div>
-                        <div className="bg-surface-container/60 border border-outline-variant/20 p-2.5 rounded-xl flex flex-col">
-                          <span className="font-label-code-sm text-[9px] text-on-surface-variant uppercase">Est. Profit</span>
-                          <span className="text-primary font-bold font-mono">
-                            {crop.estimatedProfit || 'High Return'}
-                          </span>
-                        </div>
+                      <div className="text-right">
+                        <span className="inline-block px-2.5 py-1 rounded-full bg-primary/20 text-primary font-bold text-xs font-label-code-sm">
+                          {crop.suitabilityScore}% Match
+                        </span>
                       </div>
-
-                      {/* Risks pill */}
-                      {crop.majorRisks && crop.majorRisks.length > 0 && (
-                        <div className="p-2.5 rounded-xl bg-surface-container-lowest/80 border border-error/20 flex items-start gap-2">
-                          <span className="material-symbols-outlined text-error text-sm shrink-0 mt-0.5">warning</span>
-                          <span className="font-caption text-[11px] text-on-surface-variant">
-                            <strong>Key Risk:</strong> {crop.majorRisks[0]}
-                          </span>
-                        </div>
-                      )}
                     </div>
 
-                    {/* Actions */}
-                    <div className="flex items-center gap-2 pt-2 border-t border-outline-variant/20">
-                      <Link
-                        href={`/profit?crop=${encodeURIComponent(crop.cropName)}`}
-                        className="w-1/2 py-2.5 rounded-xl bg-surface-container-high hover:bg-surface-container-highest text-on-surface font-label-code-sm text-xs text-center transition-all"
-                      >
-                        Simulate Profit
-                      </Link>
-                      <Link
-                        href={`/calendar?crop=${encodeURIComponent(crop.cropName)}`}
-                        className="w-1/2 py-2.5 rounded-xl bg-primary text-on-primary font-label-code-sm text-xs uppercase font-bold text-center shadow-md hover:bg-primary-container transition-all"
-                      >
-                        Build Farm Plan
-                      </Link>
+                    {/* Why Suitable */}
+                    <div className="space-y-1.5">
+                      <span className="text-[11px] font-label-code-sm uppercase text-on-surface-variant font-medium flex items-center gap-1">
+                        <span className="material-symbols-outlined text-sm text-primary">check_circle</span>
+                        Key Advantages
+                      </span>
+                      <ul className="space-y-1 text-xs text-on-surface leading-relaxed">
+                        {crop.reasons.map((r, i) => (
+                          <li key={i} className="flex items-start gap-1.5">
+                            <span className="text-primary">•</span>
+                            <span>{r}</span>
+                          </li>
+                        ))}
+                      </ul>
                     </div>
+
+                    {/* Water & Risk */}
+                    <div className="grid grid-cols-2 gap-2 pt-2 border-t border-outline-variant/20 text-xs">
+                      <div>
+                        <span className="text-[10px] font-label-code-sm text-on-surface-variant uppercase block">
+                          Water Demand
+                        </span>
+                        <span className="font-semibold text-secondary capitalize">
+                          {crop.waterRequirement}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-[10px] font-label-code-sm text-on-surface-variant uppercase block">
+                          Estimated Yield
+                        </span>
+                        <span className="font-semibold text-on-surface">
+                          {crop.estimatedYield || 'Regional Average'}
+                        </span>
+                      </div>
+                    </div>
+
+                    {crop.majorRisks && crop.majorRisks.length > 0 && (
+                      <div className="space-y-1">
+                        <span className="text-[10px] font-label-code-sm text-error uppercase font-medium flex items-center gap-1">
+                          <span className="material-symbols-outlined text-xs">warning</span>
+                          Primary Risks
+                        </span>
+                        <p className="text-[11px] text-on-surface-variant">
+                          {crop.majorRisks.join(', ')}
+                        </p>
+                      </div>
+                    )}
                   </div>
-                )
-              })}
+
+                  <div className="pt-3 border-t border-outline-variant/20">
+                    <Link
+                      href="/copilot"
+                      className="w-full py-2.5 rounded-xl bg-surface-container-high hover:bg-surface-container-highest text-primary text-xs font-label-code-sm uppercase font-bold text-center block transition-colors"
+                    >
+                      Plan Sowing with AI Copilot
+                    </Link>
+                  </div>
+                </div>
+              ))}
             </div>
           )}
         </div>

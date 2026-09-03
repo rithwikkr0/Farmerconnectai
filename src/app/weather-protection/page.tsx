@@ -15,46 +15,21 @@ export default function WeatherProtectionCenterPage() {
 
   const farmLocation = context.location || 'Mandya, Karnataka'
 
-  useEffect(() => {
+  const handleAssessRisk = async () => {
     setLoading(true)
-    getWeatherAdvice({
-      location: farmLocation,
-      crop,
-      additionalContext: `Soil: ${context.soilType || 'Loamy'}, Water: ${context.waterAvailability || 'Moderate'}`,
-    })
-      .then((res) => setAdvice(res))
-      .catch(() => {
-        // Fallback structured protection advice
-        setAdvice({
-          location: farmLocation,
-          weather: {
-            _demo: true,
-            location: farmLocation,
-            current: {
-              temperature_c: 28,
-              humidity_pct: 74,
-              wind_kph: 14,
-              condition: 'Rain Likely',
-              uv_index: 8,
-              rainfall_mm: 18.2,
-            },
-            forecast: [],
-            fetched_at: new Date().toISOString(),
-          },
-          advice: 'Critical Drainage Alert: Low-lying tomato plots are susceptible to severe root waterlogging and fungal leaf blight.',
-          preventiveActions: [
-            'Dredge and unclog primary drainage furrows along Sector Alpha',
-            'Shut off automatic borewell drip pumps immediately',
-            'Elevate harvested tomato crates off the ground on wooden pallets',
-            'Postpone scheduled foliar pesticide or fertilizer sprays for 48 hours',
-            'Secure greenhouse polythene and bamboo stake supports against 25 km/h gusts',
-          ],
-          risks: ['Waterlogging', 'Root Asphyxiation', 'Blight Spore Dispersal', 'Foliar Chemical Wash-Off'],
-          safetyNote: 'Adhere to local safety alerts and consult an agronomist before spraying.',
-        })
+    try {
+      const res = await getWeatherAdvice({
+        location: farmLocation,
+        crop,
+        additionalContext: `Soil: ${context.soilType || 'Red sandy loam'}, Water: ${context.waterAvailability || 'Moderate'}`,
       })
-      .finally(() => setLoading(false))
-  }, [farmLocation, crop, context.soilType, context.waterAvailability])
+      setAdvice(res)
+    } catch {
+      // Clean error handled
+    } finally {
+      setLoading(false)
+    }
+  }
 
   return (
     <StitchShell>
@@ -74,12 +49,30 @@ export default function WeatherProtectionCenterPage() {
           </div>
 
           <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={handleAssessRisk}
+              disabled={loading}
+              className="px-4 py-2 rounded-xl bg-gradient-to-r from-primary to-primary-container text-surface font-headline-sm text-xs font-bold uppercase tracking-wider shadow-md hover:scale-105 transition-all flex items-center gap-2"
+            >
+              {loading ? (
+                <>
+                  <span className="material-symbols-outlined animate-spin text-base">progress_activity</span>
+                  <span>Analyzing...</span>
+                </>
+              ) : (
+                <>
+                  <span className="material-symbols-outlined text-base">psychology</span>
+                  <span>Assess Weather Risk with AI</span>
+                </>
+              )}
+            </button>
             <Link
               href="/labor"
-              className="px-4 py-2 rounded-xl bg-gradient-to-r from-primary-container to-secondary-container text-white font-headline-sm text-xs font-bold uppercase tracking-wider shadow-md hover:scale-105 transition-all flex items-center gap-2"
+              className="px-4 py-2 rounded-xl bg-surface-container-high border border-outline-variant/40 text-white font-headline-sm text-xs font-bold uppercase tracking-wider hover:bg-surface-container-highest transition-all flex items-center gap-2"
             >
               <span className="material-symbols-outlined text-base">groups</span>
-              <span>Hire Emergency Drainage Labor</span>
+              <span>Hire Drainage Labor</span>
             </Link>
           </div>
         </div>

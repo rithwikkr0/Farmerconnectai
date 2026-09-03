@@ -6,6 +6,7 @@ import { ThemeProvider } from '@/components/shared/theme-provider'
 import { Header } from '@/components/layout/header'
 import { Footer } from '@/components/layout/footer'
 import { SITE_NAME, SITE_DESCRIPTION, SITE_URL } from '@/lib/constants'
+import { LanguageProvider } from '@/context/language-context'
 import './globals.css'
 
 const geistSans = Geist({
@@ -67,10 +68,12 @@ export default function RootLayout({
       </head>
       <body className="min-h-screen bg-surface-container-lowest text-on-surface antialiased overflow-x-hidden selection:bg-primary/30 selection:text-white">
         <ThemeProvider attribute="class" defaultTheme="dark" forcedTheme="dark">
-          <TooltipProvider>
-            {children}
-            <Toaster richColors position="bottom-right" />
-          </TooltipProvider>
+          <LanguageProvider>
+            <TooltipProvider>
+              {children}
+              <Toaster richColors position="bottom-right" />
+            </TooltipProvider>
+          </LanguageProvider>
         </ThemeProvider>
       </body>
     </html>

@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { toast } from 'sonner'
 import { useFarmContext } from '@/hooks/use-farm-context'
+import { useLanguage } from '@/context/language-context'
 
 interface NavItem {
   name: string
@@ -20,37 +21,38 @@ interface NavGroup {
 
 const NAV_GROUPS: NavGroup[] = [
   {
-    label: 'Command Deck',
+    label: 'HOME',
     items: [
-      { name: 'Command Center', href: '/dashboard', icon: 'space_dashboard' },
-      { name: 'AI Copilot', href: '/copilot', icon: 'psychology', badge: 'v4.9' },
-      { name: 'Farmer Profile', href: '/profile', icon: 'account_circle', badge: 'D1' },
-      { name: 'Set Up Your Farm', href: '/setup', icon: 'tune' },
-      { name: 'Splash Experience', href: '/', icon: 'satellite_alt' },
+      { name: 'Dashboard', href: '/dashboard', icon: 'space_dashboard' },
+      { name: 'AI Copilot', href: '/copilot', icon: 'psychology' },
+      { name: 'Weather', href: '/weather', icon: 'thermostat' },
+      { name: 'Farmer Profile', href: '/profile', icon: 'account_circle' },
     ],
   },
   {
-    label: 'Agronomic AI',
+    label: 'FARM',
     items: [
-      { name: 'Crop Intelligence', href: '/crops', icon: 'grain' },
-      { name: 'AI Crop Doctor', href: '/crop-doctor', icon: 'document_scanner', badge: 'Vision' },
-      { name: 'AI Input Advisor', href: '/input-advisor', icon: 'science' },
-      { name: 'Weather Intelligence', href: '/weather', icon: 'thermostat' },
-      { name: 'Weather Protection', href: '/weather-protection', icon: 'water_damage', badge: 'Alert' },
-      { name: 'Farm Calendar', href: '/calendar', icon: 'calendar_month' },
-      { name: 'Profit Simulator', href: '/profit', icon: 'calculate' },
+      { name: 'Crops', href: '/crops', icon: 'grain' },
+      { name: 'Crop Doctor', href: '/crop-doctor', icon: 'document_scanner' },
+      { name: 'Input Advisor', href: '/input-advisor', icon: 'science' },
+      { name: 'Calendar', href: '/calendar', icon: 'calendar_month' },
+      { name: 'Profit', href: '/profit', icon: 'calculate' },
     ],
   },
   {
-    label: 'Ecosystem & Market',
+    label: 'CONNECT',
     items: [
-      { name: 'Find a Farmer', href: '/farmers', icon: 'person_search' },
-      { name: 'Farmer Community', href: '/community', icon: 'groups' },
-      { name: 'Labor Marketplace', href: '/labor', icon: 'engineering', badge: 'Live' },
-      { name: 'Farm Marketplace', href: '/marketplace', icon: 'storefront' },
-      { name: 'Agri Services', href: '/services', icon: 'precision_manufacturing' },
-      { name: 'Livestock AI', href: '/livestock', icon: 'pets' },
-      { name: 'Business Deals', href: '/business', icon: 'handshake' },
+      { name: 'Farmers', href: '/farmers', icon: 'person_search' },
+      { name: 'Labor', href: '/labor', icon: 'engineering' },
+      { name: 'Marketplace', href: '/marketplace', icon: 'storefront' },
+      { name: 'Services', href: '/services', icon: 'precision_manufacturing' },
+    ],
+  },
+  {
+    label: 'MORE',
+    items: [
+      { name: 'Livestock', href: '/livestock', icon: 'pets' },
+      { name: 'Business', href: '/business', icon: 'handshake' },
     ],
   },
 ]
@@ -59,12 +61,13 @@ export function StitchShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const [mobileOpen, setMobileOpen] = useState(false)
   const { context, user, isAuthenticated, logout } = useFarmContext()
+  const { language, setLanguage, t } = useLanguage()
 
   const currentSector = context.district
-    ? `${context.district} Sector`
+    ? `${context.district}`
     : context.location
-      ? `${context.location} Node`
-      : 'Sector 07-Gamma'
+      ? `${context.location.split(',')[0]}`
+      : 'Mandya'
 
   return (
     <div className="min-h-screen bg-surface-container-lowest text-on-surface antialiased flex">
@@ -240,7 +243,22 @@ export function StitchShell({ children }: { children: React.ReactNode }) {
           </div>
 
           {/* Quick Header Actions & Profile */}
-          <div className="flex items-center gap-2.5 sm:gap-4">
+          <div className="flex items-center gap-2.5 sm:gap-3">
+            {/* Language Toggle Button */}
+            <button
+              type="button"
+              onClick={() => {
+                const nextLang = language === 'en' ? 'kn' : 'en';
+                setLanguage(nextLang);
+                toast.success(nextLang === 'kn' ? 'ಕನ್ನಡ ಭಾಷೆಗೆ ಬದಲಾಯಿಸಲಾಗಿದೆ' : 'Switched to English');
+              }}
+              className="px-2.5 sm:px-3 py-1.5 rounded-xl bg-surface-container hover:bg-surface-container-high border border-outline-variant/40 hover:border-secondary text-xs font-label-code-sm font-semibold transition-all flex items-center gap-1.5 text-on-surface"
+              title="Toggle Language / ಭಾಷೆ ಬದಲಾಯಿಸಿ"
+            >
+              <span className="material-symbols-outlined text-sm text-secondary">translate</span>
+              <span className="font-bold">{language === 'en' ? 'ಕನ್ನಡ' : 'EN'}</span>
+            </button>
+
             <Link
               href="/copilot"
               className="hidden sm:inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-gradient-to-r from-primary-container/30 to-secondary-container/30 border border-primary/40 hover:border-primary text-primary font-label-code-sm text-xs uppercase tracking-wider transition-all"

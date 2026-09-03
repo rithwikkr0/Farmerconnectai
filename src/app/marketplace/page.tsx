@@ -18,71 +18,9 @@ export default function FarmMarketplacePage() {
     setLoading(true)
     const cat = category === 'all' ? undefined : (category as MarketplaceCategory)
     getMarketplaceListings({ category: cat })
-      .then((res) => setListings(res.listings))
+      .then((res) => setListings(res.listings || []))
       .catch(() => {
-        // Fallback
-        setListings([
-          {
-            id: 'm-1',
-            title: 'Bulk Tomato Lot Purchase - 500kg batches',
-            category: 'produce',
-            price_inr: 38,
-            unit: 'kg',
-            location: 'Mandya Wholesale Yard',
-            sellerName: 'FreshBasket Supermarkets APMC Desk',
-            sellerPhone_masked: '+91 98450 99887',
-            available: true,
-            postedAt: 'Today',
-            tags: ['Bulk Buy', 'Grade A', 'Direct APMC'],
-            description: 'Direct farm gate procurement for Grade A hybrid tomatoes. Immediate UPI settlement on weighbridge slip.',
-            _demo: true,
-          },
-          {
-            id: 'm-2',
-            title: 'Certified Arka Rakshak Tomato F1 Seeds',
-            category: 'seeds',
-            price_inr: 850,
-            unit: '50g packet',
-            location: 'ICAR-IIHR Certified Dealer, Mysore Road',
-            sellerName: 'Krishi Vikas Kendra Authorized Depot',
-            sellerPhone_masked: '+91 97410 44332',
-            available: true,
-            postedAt: 'Yesterday',
-            tags: ['Certified', 'F1 Hybrid', 'Disease Resistant'],
-            description: 'Triple disease resistant (ToLCV + BW + EB). High fruit firmness suited for long distance haulage.',
-            _demo: true,
-          },
-          {
-            id: 'm-3',
-            title: 'Trichoderma Viride Bio-Fungicide (Organic)',
-            category: 'fertilizers',
-            price_inr: 220,
-            unit: '1kg pack',
-            location: 'Mandya Agro Service Hub',
-            sellerName: 'GreenEarth Bio-Solutions',
-            sellerPhone_masked: '+91 99000 11223',
-            available: true,
-            postedAt: '2 days ago',
-            tags: ['Organic', 'Bio-Control', 'Anti-Fungal'],
-            description: 'Potent biological control against root rot, damping-off, and wilt pathogens. Soil application ready.',
-            _demo: true,
-          },
-          {
-            id: 'm-4',
-            title: '45 HP 4WD Tractor with Rotavator & Plough',
-            category: 'equipment',
-            price_inr: 900,
-            unit: 'hour',
-            location: 'Huligere Cluster (3km)',
-            sellerName: 'Siddaganga Custom Hiring Center',
-            sellerPhone_masked: '+91 98860 33445',
-            available: true,
-            postedAt: '3 days ago',
-            tags: ['Tractor Rental', 'Rotavator Included', 'Operator Included'],
-            description: 'High-efficiency deep tilling and land preparation. Fuel and experienced operator included.',
-            _demo: true,
-          },
-        ])
+        setListings([])
       })
       .finally(() => setLoading(false))
   }

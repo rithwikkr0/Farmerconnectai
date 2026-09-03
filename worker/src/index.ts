@@ -126,14 +126,29 @@ router.all('*', () =>
 
 // ─── CORS helper ──────────────────────────────────────────────────────────────
 
+const ALLOWED_ORIGINS = new Set([
+  'https://bhoomi-mithra.pages.dev',
+  'http://localhost:3000',
+  'http://localhost:3001',
+]);
+
 function corsHeaders(requestOrigin: string | null): Record<string, string> {
-  const origin = requestOrigin || '*';
+  // If the origin is one of our known frontends, reflect it back.
+  // Otherwise use a safe wildcard (no credentials allowed with wildcard, but
+  // our token-based auth doesn't rely on cookies so this is fine for public GET routes).
+  const origin =
+    requestOrigin && ALLOWED_ORIGINS.has(requestOrigin)
+      ? requestOrigin
+      : requestOrigin?.endsWith('.bhoomi-mithra.pages.dev')
+        ? requestOrigin
+        : 'https://bhoomi-mithra.pages.dev';
   return {
     'Access-Control-Allow-Origin': origin,
     'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type, Authorization, Cookie',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
     'Access-Control-Allow-Credentials': 'true',
     'Access-Control-Max-Age': '86400',
+    Vary: 'Origin',
   };
 }
 

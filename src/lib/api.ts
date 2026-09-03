@@ -341,7 +341,6 @@ async function apiFetch<T>(
 
   try {
     res = await fetch(url, {
-      credentials: 'include',
       ...options,
       headers: customHeaders,
     })

@@ -44,11 +44,13 @@ function inferTask(question: string): AITask {
 export function useAICopilot() {
   const [messages, setMessages] = useState<CopilotMessage[]>([])
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   const sendMessage = useCallback(
-    async (userText: string, farmContext: Record<string, unknown> = {}) => {
+    async (userText: string, farmContext: Record<string, unknown> = {}, explicitTask?: AITask) => {
       if (loading || !userText.trim()) return
 
+      setError(null)
       const userMsg: CopilotMessage = {
         id: `u-${Date.now()}`,
         role: 'user',
@@ -60,7 +62,7 @@ export function useAICopilot() {
       setLoading(true)
 
       try {
-        const task = inferTask(userText)
+        const task = explicitTask || inferTask(userText)
         const context: Record<string, unknown> = {
           ...farmContext,
           question: userText.trim(),
@@ -77,13 +79,12 @@ export function useAICopilot() {
         }
         setMessages((prev) => [...prev, assistantMsg])
       } catch (err) {
+        const errMsg = err instanceof Error ? err.message : 'Unable to connect to FarmConnect AI. Please try again.'
+        setError(errMsg)
         const errorMsg: CopilotMessage = {
           id: `e-${Date.now()}`,
           role: 'error',
-          content:
-            err instanceof Error
-              ? err.message
-              : 'Unable to connect to FarmConnect AI. Please try again.',
+          content: errMsg,
           timestamp: new Date(),
         }
         setMessages((prev) => [...prev, errorMsg])
@@ -94,7 +95,10 @@ export function useAICopilot() {
     [loading],
   )
 
-  const clearMessages = useCallback(() => setMessages([]), [])
+  const clearMessages = useCallback(() => {
+    setMessages([])
+    setError(null)
+  }, [])
 
-  return { messages, loading, sendMessage, clearMessages }
+  return { messages, loading, error, sendMessage, clearMessages }
 }

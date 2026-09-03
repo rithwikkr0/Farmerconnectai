@@ -1,20 +1,212 @@
-import type { Metadata } from 'next'
-import { MarketplaceBrowser } from '@/components/features/marketplace-browser'
+'use client'
 
-export const metadata: Metadata = {
-  title: 'Marketplace',
-}
+import React, { useState, useEffect } from 'react'
+import Link from 'next/link'
+import { toast } from 'sonner'
+import { StitchShell } from '@/components/layout/stitch-shell'
+import { useFarmContext } from '@/hooks/use-farm-context'
+import { getMarketplaceListings } from '@/lib/api'
+import type { MarketplaceListing, MarketplaceCategory } from '@/lib/api'
 
-export default function MarketplacePage() {
+export default function FarmMarketplacePage() {
+  const { context } = useFarmContext()
+  const [category, setCategory] = useState<string>('all')
+  const [listings, setListings] = useState<MarketplaceListing[]>([])
+  const [loading, setLoading] = useState(false)
+
+  const fetchListings = () => {
+    setLoading(true)
+    const cat = category === 'all' ? undefined : (category as MarketplaceCategory)
+    getMarketplaceListings({ category: cat })
+      .then((res) => setListings(res.listings))
+      .catch(() => {
+        // Fallback
+        setListings([
+          {
+            id: 'm-1',
+            title: 'Bulk Tomato Lot Purchase - 500kg batches',
+            category: 'produce',
+            price_inr: 38,
+            unit: 'kg',
+            location: 'Mandya Wholesale Yard',
+            sellerName: 'FreshBasket Supermarkets APMC Desk',
+            sellerPhone_masked: '+91 98450 99887',
+            available: true,
+            postedAt: 'Today',
+            tags: ['Bulk Buy', 'Grade A', 'Direct APMC'],
+            description: 'Direct farm gate procurement for Grade A hybrid tomatoes. Immediate UPI settlement on weighbridge slip.',
+            _demo: true,
+          },
+          {
+            id: 'm-2',
+            title: 'Certified Arka Rakshak Tomato F1 Seeds',
+            category: 'seeds',
+            price_inr: 850,
+            unit: '50g packet',
+            location: 'ICAR-IIHR Certified Dealer, Mysore Road',
+            sellerName: 'Krishi Vikas Kendra Authorized Depot',
+            sellerPhone_masked: '+91 97410 44332',
+            available: true,
+            postedAt: 'Yesterday',
+            tags: ['Certified', 'F1 Hybrid', 'Disease Resistant'],
+            description: 'Triple disease resistant (ToLCV + BW + EB). High fruit firmness suited for long distance haulage.',
+            _demo: true,
+          },
+          {
+            id: 'm-3',
+            title: 'Trichoderma Viride Bio-Fungicide (Organic)',
+            category: 'fertilizers',
+            price_inr: 220,
+            unit: '1kg pack',
+            location: 'Mandya Agro Service Hub',
+            sellerName: 'GreenEarth Bio-Solutions',
+            sellerPhone_masked: '+91 99000 11223',
+            available: true,
+            postedAt: '2 days ago',
+            tags: ['Organic', 'Bio-Control', 'Anti-Fungal'],
+            description: 'Potent biological control against root rot, damping-off, and wilt pathogens. Soil application ready.',
+            _demo: true,
+          },
+          {
+            id: 'm-4',
+            title: '45 HP 4WD Tractor with Rotavator & Plough',
+            category: 'equipment',
+            price_inr: 900,
+            unit: 'hour',
+            location: 'Huligere Cluster (3km)',
+            sellerName: 'Siddaganga Custom Hiring Center',
+            sellerPhone_masked: '+91 98860 33445',
+            available: true,
+            postedAt: '3 days ago',
+            tags: ['Tractor Rental', 'Rotavator Included', 'Operator Included'],
+            description: 'High-efficiency deep tilling and land preparation. Fuel and experienced operator included.',
+            _demo: true,
+          },
+        ])
+      })
+      .finally(() => setLoading(false))
+  }
+
+  useEffect(() => {
+    fetchListings()
+  }, [category])
+
   return (
-    <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6">
-      <div className="mb-6">
-        <h1 className="text-foreground text-2xl font-bold tracking-tight">Marketplace</h1>
-        <p className="text-muted-foreground mt-1 text-sm">
-          Browse seeds, fertilizers, equipment, produce, and services from local sellers.
-        </p>
+    <StitchShell>
+      <div className="w-full max-w-[1680px] mx-auto px-4 sm:px-6 lg:px-12 py-6 flex flex-col gap-8">
+        {/* Header */}
+        <div className="flex flex-wrap items-center justify-between gap-4 pb-2 border-b border-outline-variant/30">
+          <div className="flex flex-col gap-1">
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+              <span className="font-label-code-sm text-xs text-primary uppercase font-bold tracking-wider">
+                Agronomic Exchange &amp; Direct Procurement // Active
+              </span>
+            </div>
+            <h1 className="font-headline-lg text-2xl sm:text-3xl font-bold text-on-surface tracking-tight">
+              Farm Marketplace &amp; Buyers
+            </h1>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <span className="px-3 py-1 rounded-full bg-surface-container-high border border-primary/20 font-label-code-sm text-xs text-primary font-bold">
+              DEMO DATA
+            </span>
+          </div>
+        </div>
+
+        {/* Category Tabs */}
+        <div className="p-4 rounded-2xl bg-surface-container-low/80 border border-primary/20 backdrop-blur-xl flex items-center gap-2 overflow-x-auto">
+          {[
+            { id: 'all', label: 'All Exchange Lots', icon: 'storefront' },
+            { id: 'produce', label: 'Produce Buyers', icon: 'shopping_basket' },
+            { id: 'seeds', label: 'Certified Seeds', icon: 'grain' },
+            { id: 'fertilizers', label: 'Bio-Inputs & Fertilizer', icon: 'science' },
+            { id: 'equipment', label: 'Machinery Rentals', icon: 'precision_manufacturing' },
+          ].map((tab) => (
+            <button
+              key={tab.id}
+              type="button"
+              onClick={() => setCategory(tab.id)}
+              className={`px-4 py-2 rounded-xl font-label-code-sm text-xs uppercase font-bold transition-all flex items-center gap-2 whitespace-nowrap ${
+                category === tab.id
+                  ? 'bg-primary-container text-on-primary-container shadow-md'
+                  : 'bg-surface-container border border-outline-variant/20 text-on-surface-variant hover:text-on-surface'
+              }`}
+            >
+              <span className="material-symbols-outlined text-base">{tab.icon}</span>
+              <span>{tab.label}</span>
+            </button>
+          ))}
+        </div>
+
+        {/* Listings Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {listings.map((item) => (
+            <div
+              key={item.id}
+              className="p-6 rounded-3xl bg-surface-container/80 border border-primary/20 backdrop-blur-xl flex flex-col justify-between gap-5 shadow-xl hover:border-primary transition-all group"
+            >
+              <div className="flex flex-col gap-3">
+                <div className="flex items-start justify-between">
+                  <div className="flex flex-col">
+                    <span className="font-label-code-sm text-[10px] text-primary uppercase font-bold tracking-wider">
+                      {item.category.toUpperCase()} • Posted {item.postedAt}
+                    </span>
+                    <h3 className="font-headline-sm text-lg font-bold text-on-surface mt-1">{item.title}</h3>
+                  </div>
+
+                  <span className="font-headline-sm text-base text-primary font-bold font-mono px-3 py-1 rounded-xl bg-primary-container/20 border border-primary/30">
+                    ₹{item.price_inr} / {item.unit}
+                  </span>
+                </div>
+
+                <p className="font-body-sm text-xs text-on-surface-variant leading-relaxed">{item.description}</p>
+
+                <div className="p-3 rounded-2xl bg-surface-container-low border border-outline-variant/20 flex flex-col gap-1 text-xs">
+                  <div className="flex items-center justify-between text-on-surface-variant">
+                    <span>Node / Location:</span>
+                    <span className="text-on-surface font-semibold">{item.location}</span>
+                  </div>
+                  <div className="flex items-center justify-between text-on-surface-variant">
+                    <span>Counterparty:</span>
+                    <span className="text-secondary font-semibold">{item.sellerName}</span>
+                  </div>
+                </div>
+
+                {item.tags && (
+                  <div className="flex flex-wrap gap-1.5 pt-1">
+                    {item.tags.map((tag) => (
+                      <span key={tag} className="px-2.5 py-0.5 rounded-lg bg-surface-container-high text-[11px] text-on-surface-variant font-medium">
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div className="pt-3 border-t border-outline-variant/20 flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => toast.success(`Connecting call to ${item.sellerName}: ${item.sellerPhone_masked}`)}
+                  className="flex-1 py-2.5 rounded-xl bg-primary text-on-primary font-headline-sm text-xs font-bold uppercase tracking-wider shadow-sm hover:bg-primary-container transition-all flex items-center justify-center gap-2"
+                >
+                  <span className="material-symbols-outlined text-base">call</span>
+                  <span>Contact Dealer / Buyer</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => toast.info(`Offer initiated for: ${item.title}`)}
+                  className="px-4 py-2.5 rounded-xl bg-surface-container-high text-on-surface hover:text-primary transition-colors font-body-sm text-xs font-semibold"
+                >
+                  Place Offer
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
-      <MarketplaceBrowser />
-    </div>
+    </StitchShell>
   )
 }

@@ -47,3 +47,8 @@ worker/.dev.vars.*
 !worker/.dev.vars.example
 worker/.wrangler/
 worker/dist/
+
+# Stitch raw assets
+stitch_extracted/
+*.zip
+

@@ -223,7 +223,10 @@ export interface FarmContext {
 // ─── Internal fetch wrapper ───────────────────────────────────────────────────
 
 const BASE_URL =
-  process.env.NEXT_PUBLIC_WORKER_URL ?? 'http://localhost:8787'
+  process.env.NEXT_PUBLIC_WORKER_URL ||
+  (process.env.NODE_ENV === 'production'
+    ? 'https://farmconnect-ai-worker.bhoomi-mithra.workers.dev'
+    : 'http://localhost:8787')
 
 class ApiError extends Error {
   constructor(

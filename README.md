@@ -1,138 +1,270 @@
-# BHOOMI MITHRA
+<div align="center">
 
-## ಬೆಳಕಿನ ಮನೆ
+<img src="public/bhoomi-mithra-logo.png" alt="Bhoomi Mithra Logo" width="120" />
 
-**Bhoomi Mithra** is an AI-powered agricultural operating system designed to help farmers understand their farm, weather, crops, resources, people, livestock, and markets through one connected interface.
+# Bhoomi Mithra
+### ಬೆಳಕಿನ ಮನೆ
 
-The platform combines a **Next.js 16 + TypeScript frontend**, **Cloudflare Worker backend**, **Cloudflare D1 SQLite database**, **Google Gemini 3.5 AI**, live meteorological telemetry from **Open-Meteo**, a centralized API layer, Web Crypto authenticated farmer sessions, and Stitch-inspired Three.js visual experiences.
+**AI-Powered Agricultural Intelligence Platform for Indian Farmers**
 
----
+[![Live Demo](https://img.shields.io/badge/🌐%20Live%20Demo-bhoomi--mithra.pages.dev-6c47ff?style=for-the-badge)](https://bhoomi-mithra.pages.dev)
+[![Worker API](https://img.shields.io/badge/⚡%20Worker%20API-farmconnect--ai--worker-orange?style=for-the-badge)](https://farmconnect-ai-worker.bhoomi-mithra.workers.dev/api/health)
+[![Next.js](https://img.shields.io/badge/Next.js-16-black?style=for-the-badge&logo=next.js)](https://nextjs.org)
+[![Cloudflare Workers](https://img.shields.io/badge/Cloudflare-Workers-F38020?style=for-the-badge&logo=cloudflare)](https://workers.cloudflare.com)
+[![Gemini AI](https://img.shields.io/badge/Google-Gemini%203.5-4285F4?style=for-the-badge&logo=google)](https://ai.google.dev)
 
-## 🌐 Live Production Deployments
-
-* **Frontend Web Platform (Cloudflare Pages)**: [https://bhoomi-mithra.pages.dev](https://bhoomi-mithra.pages.dev)
-* **Backend API Engine (Cloudflare Worker)**: [https://farmconnect-ai-worker.bhoomi-mithra.workers.dev](https://farmconnect-ai-worker.bhoomi-mithra.workers.dev)
-* **System Health Status**: [https://farmconnect-ai-worker.bhoomi-mithra.workers.dev/api/health](https://farmconnect-ai-worker.bhoomi-mithra.workers.dev/api/health)
-* **Source Code Repository**: [https://github.com/rithwikkr0/Farmerconnectai](https://github.com/rithwikkr0/Farmerconnectai)
-
----
-
-## 🌾 Product Vision
-
-Bhoomi Mithra brings agricultural intelligence into a single farmer-focused workflow:
-
-> **Understand the farm → understand the conditions → make better decisions → connect with people and resources → act.**
-
-The product is designed around practical decision support rather than pretending that AI can guarantee outcomes. Every AI response is contextualized with the authenticated farmer's real acreage, soil profile, water access, and current crop.
+</div>
 
 ---
 
-## 📊 Live Production & Data Verification Status (14 / 14 Verified)
+## What is Bhoomi Mithra?
 
-| Endpoint | Method | Status | Verified Result / Data Source |
-| :--- | :--- | :--- | :--- |
-| `/api/health` | `GET` | **LIVE (HTTP 200)** | Cloudflare Worker v1.0.0 |
-| `/api/weather` | `GET` | **LIVE (HTTP 200)** | Open-Meteo Real-time Meteorology (Mandya, Karnataka) |
-| `/api/auth/register` | `POST` | **LIVE (HTTP 201)** | Cloudflare D1 (`users`, `sessions`, `farm_profiles`) |
-| `/api/auth/me` | `GET` | **LIVE (HTTP 200)** | D1 Authenticated Farmer Context Sync |
-| `/api/auth/login` | `POST` | **LIVE (HTTP 200)** | PBKDF2 Web Crypto Hash Verification |
-| `/api/auth/logout` | `POST` | **LIVE (HTTP 200)** | Server-side Session Invalidation |
-| `/api/ai` | `POST` | **LIVE (HTTP 200)** | Google Gemini 3.5 Agronomic Advisory Engine |
-| `/api/crops/recommend` | `POST` | **LIVE (HTTP 200)** | Gemini Structured Regional Crop Suitability |
-| `/api/weather/advice` | `POST` | **LIVE (HTTP 200)** | Open-Meteo Telemetry + Gemini AI Synthesis |
-| `/api/farmers/match` | `POST` | **OPERATIONAL (HTTP 200)** | Two-stage Deterministic + AI Ranking (D1) |
-| `/api/labor/nearby` | `GET` | **OPERATIONAL (HTTP 200)** | Haversine Geo-distance Query (Mandya Cluster) |
-| `/api/labor/request` | `POST` | **LIVE (HTTP 201)** | Persistent D1 Dispatch Tickets (`labor_requests`) |
-| `/api/marketplace` | `GET` | **OPERATIONAL (HTTP 200)** | D1 APMC Lot Directory (`marketplace_listings`) |
-| `/api/services` | `GET` | **OPERATIONAL (HTTP 200)** | D1 Agricultural Extension & Machinery Directory |
+**Bhoomi Mithra** (ಭೂಮಿ ಮಿತ್ರ) — *Friend of the Earth* — is an AI-powered agricultural platform built specifically for Indian farmers. It combines **real-time weather**, **Google Gemini 3.5 AI**, and a **farmer community** to help farmers make smarter decisions about their crops, inputs, labor, and markets.
 
-> **Transparency Note**: Features marked as OPERATIONAL utilize calibrated regional records in D1 with explicit `(DEMO)` tags for presentation demonstration. Real farmer accounts created via `/register` or `/login` are genuine persistent D1 records. Gemini AI and Weather telemetry are verified LIVE in production.
+The tagline **ಬೆಳಕಿನ ಮನೆ** (*House of Light*) reflects the mission: bringing clarity and knowledge to every farming household.
 
 ---
 
-## 🧭 Core Experiences & Authentication
+## ✨ Features
 
-| # | Route | Experience | Status |
-|---|---|---|---|
-| 01 | `/` | Bhoomi Mithra Splash Experience | Live |
-| 02 | `/register` | Farmer Identity & Farm Registration | **New (D1 Auth)** |
-| 03 | `/login` | Farmer Sign In & Session Verification | **New (D1 Auth)** |
-| 04 | `/profile` | Persistent Farm Profile & D1 Telemetry Sync | **New (D1 Auth)** |
-| 05 | `/setup` | Reconfigure Farm Parameters | Live |
-| 06 | `/dashboard` | Farm Command Center (Personalized Banner) | Live |
-| 07 | `/copilot` | Bhoomi Mithra AI Copilot | Live (Gemini 3.5) |
-| 08 | `/crops` | Crop Intelligence & Suitability Scoring | Live (Gemini 3.5) |
-| 09 | `/crop-doctor` | AI Crop Doctor | Live |
-| 10 | `/input-advisor` | AI Input & Nutrient Advisor | Live |
-| 11 | `/weather` | Weather Intelligence | Live (Open-Meteo) |
-| 12 | `/weather-protection` | Weather Protection Center | Live |
-| 13 | `/calendar` | AI Farm Operations Calendar | Live |
-| 14 | `/profit` | Farm Profit Simulator | Live |
-| 15 | `/community` | Farmer Community & Exchange | Live |
-| 16 | `/farmers` | Find a Peer Farmer | Live (D1) |
-| 17 | `/labor` | Farm Labor Marketplace & Dispatch | Live (D1) |
-| 18 | `/marketplace` | Farm Marketplace & APMC Inputs | Live (D1) |
-| 19 | `/services` | Agricultural Services (Drone / Machinery / Lab) | Live (D1) |
-| 20 | `/livestock` | Livestock AI Ecosystem | Live |
-| 21 | `/business` | Business & Contract Farming Opportunities | Live |
+| Feature | Description |
+| :--- | :--- |
+| 🌾 **Crop Intelligence** | AI recommends the best crops based on soil, water, acreage, season, and location |
+| 🩺 **AI Crop Doctor** | Diagnose plant diseases from symptoms and get actionable remedies |
+| 💊 **Input Advisor** | Get AI-guided fertilizer, pesticide, and irrigation recommendations |
+| 🌤️ **Weather Intelligence** | Live weather from Open-Meteo with district-level Karnataka selectors |
+| 🛡️ **Weather Protection** | AI risk assessment and mitigation plan based on live forecast |
+| 📅 **Farm Calendar** | Seasonal activity planner aligned to Karnataka crop cycles |
+| 💰 **Profit Simulator** | Estimate seasonal net revenue and farm profitability |
+| 👥 **Farmer Community** | Connect with experienced peer farmers and share knowledge |
+| 🔍 **Find a Farmer** | Match with farmers who grow the same crop in similar conditions |
+| 🚜 **Labor Marketplace** | Hire verified farm labor crews with geo-distance matching |
+| 🛒 **Farm Marketplace** | Browse crop listings and agribusiness procurement opportunities |
+| 🏪 **Agricultural Services** | Locate nearby agro-dealers, equipment rentals, and processing units |
+| 🐄 **Livestock AI** | AI-powered livestock health and management guidance |
+| 🤝 **Business Opportunities** | Explore contract farming templates, government subsidies, and agribusiness tie-ups |
+| 🌐 **Language Toggle** | Full English and ಕನ್ನಡ (Kannada) translation support |
 
 ---
 
 ## 🏗️ Architecture
 
-```text
-┌─────────────────────────────────────────────────────────────┐
-│               Bhoomi Mithra UI (Next.js 16)                │
-│             Deployed on Cloudflare Pages                    │
-│             https://bhoomi-mithra.pages.dev                 │
-└──────────────────────────────┬──────────────────────────────┘
-                               │ HTTPS (with Session Token & Cookie)
-                               ▼
-┌─────────────────────────────────────────────────────────────┐
-│          Bhoomi Mithra Worker Backend (Itty Router)         │
-│          https://farmconnect-ai-worker.bhoomi-mithra.workers.dev
-└──────────────┬──────────────────┬─────────────────┬─────────┘
-               │                  │                 │
-               ▼                  ▼                 ▼
-   ┌──────────────────────┐ ┌───────────────┐ ┌───────────────┐
-   │    Open-Meteo API    │ │ Cloudflare D1 │ │ Google Gemini │
-   │ (Live Meteorology)   │ │ (APAC SQLite) │ │ (3.5 AI Model)│
-   └──────────────────────┘ └───────────────┘ └───────────────┘
+```
+┌─────────────────────────────────────────────────┐
+│           Bhoomi Mithra Frontend                │
+│   Next.js 16 · TypeScript · Tailwind CSS        │
+│   Cloudflare Pages (bhoomi-mithra.pages.dev)    │
+└───────────────────────┬─────────────────────────┘
+                        │ HTTPS
+┌───────────────────────▼─────────────────────────┐
+│           Bhoomi Mithra AI Worker                │
+│   Cloudflare Workers · TypeScript               │
+│   farmconnect-ai-worker.bhoomi-mithra.workers.dev│
+├────────────────────────────────────────────────┤
+│  ┌─────────────┐  ┌──────────────┐  ┌────────┐ │
+│  │ Gemini 3.5  │  │ Cloudflare   │  │Open-   │ │
+│  │ Flash AI    │  │ D1 SQLite DB │  │Meteo   │ │
+│  └─────────────┘  └──────────────┘  └────────┘ │
+└─────────────────────────────────────────────────┘
 ```
 
-### Cloudflare D1 Database (`bhoomi-mithra-db`)
-* **Region**: APAC (Singapore)
-* **Binding**: `DB`
-* **Database ID**: `95e6dfb4-9257-485c-b33d-b760bd466eb7`
-* **Tables**:
-  * `users`: Farmer accounts with PBKDF2 password hashes (salt + hash)
-  * `sessions`: Server-side session tokens with expiration tracking
-  * `farm_profiles`: Acreage, soil type, water source, current crop, season, goal
-  * `farmers`: Peer farmer directory and agronomic specialties
-  * `labor_workers`: Skill-indexed farm labor crews with GPS coordinates
-  * `labor_requests`: Live dispatch tickets and duration management
-  * `marketplace_listings`: APMC-categorized inputs, seeds, and equipment lots
-  * `agricultural_services`: Drone spraying, cold storage, and soil testing directory
+### Tech Stack
+
+| Layer | Technology |
+| :--- | :--- |
+| **Frontend** | Next.js 16, TypeScript, Tailwind CSS, shadcn/ui, Three.js |
+| **Backend** | Cloudflare Workers (Edge Runtime) |
+| **Database** | Cloudflare D1 (SQLite at the Edge) |
+| **AI** | Google Gemini 3.5 Flash (single-shot, 600 token budget) |
+| **Weather** | Open-Meteo Real-time Meteorological API |
+| **Auth** | PBKDF2-based password hashing, JWT-style session tokens in D1 |
+| **Deploy** | Cloudflare Pages (frontend) + Wrangler CLI (worker) |
 
 ---
 
-## 🎬 5–7 Minute Demonstration Flow
+## 🚀 Getting Started
 
-1. **Open Platform**: Navigate to [https://bhoomi-mithra.pages.dev](https://bhoomi-mithra.pages.dev).
-2. **Register Real Account**: Click **Register** (or `/register`) and enter a farmer's real credentials (e.g., *Basavaraj, Mandya, 4.5 acres, Red sandy loam, Sugarcane*).
-3. **D1 Provisioning**: Account, password hash, and farm profile are created in Cloudflare D1.
-4. **Personalized Dashboard**: User lands on `/dashboard` with a greeting banner showing their name, primary crop, acreage, and soil profile.
-5. **Live Weather & Advisory**: Live Open-Meteo weather is fetched for Mandya and combined with Gemini AI agronomic advice.
-6. **AI Copilot & Crop Recommendations**: Open `/copilot` and `/crops` to receive Gemini 3.5 recommendations tailored to the farmer's soil and acreage.
-7. **Labor Marketplace & Dispatch**: Open `/labor`, select a nearby crew, and click book. A dispatch ticket is stored in D1.
-8. **APMC Marketplace & Agri Services**: Browse verified lots and machinery on `/marketplace` and `/services`.
-9. **Persistence Verification**: Click **Logout** → session is destroyed. Click **Sign In** (`/login`) with the email and password → all farm profile parameters are restored from D1.
+### Prerequisites
+
+- **Node.js** ≥ 20
+- **Cloudflare account** with Workers and D1 enabled
+- **Google Gemini API key** — [Get one free at Google AI Studio](https://aistudio.google.com/apikey)
+
+### 1. Clone the Repository
+
+```bash
+git clone https://github.com/rithwikkr0/Farmerconnectai.git
+cd Farmerconnectai
+```
+
+### 2. Install Dependencies
+
+```bash
+# Frontend dependencies
+npm install
+
+# Worker dependencies
+cd worker && npm install && cd ..
+```
+
+### 3. Configure Environment Variables
+
+```bash
+# Copy the example env file
+cp .env.example .env.local
+```
+
+Edit `.env.local`:
+```env
+NEXT_PUBLIC_WORKER_URL=http://localhost:8787
+NEXT_PUBLIC_SITE_URL=http://localhost:3000
+GEMINI_API_KEY=your-gemini-api-key-here
+```
+
+Configure the worker for local development:
+```bash
+cp worker/.dev.vars.example worker/.dev.vars
+```
+
+Edit `worker/.dev.vars`:
+```
+GEMINI_API_KEY=your-gemini-api-key-here
+```
+
+### 4. Set Up Cloudflare D1 (Local)
+
+```bash
+cd worker
+
+# Create local D1 database
+npx wrangler d1 create bhoomi-mithra-db
+
+# Apply schema
+npx wrangler d1 execute bhoomi-mithra-db --local --file=schema.sql
+
+# Seed demo data
+npx wrangler d1 execute bhoomi-mithra-db --local --file=seed.sql
+```
+
+### 5. Run the Development Servers
+
+**Terminal 1 — Worker (port 8787):**
+```bash
+cd worker
+npm run dev
+```
+
+**Terminal 2 — Frontend (port 3000):**
+```bash
+npm run dev
+```
+
+Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ---
 
-## 🔒 Security Posture
-* **Zero Client-Side Secrets**: No Gemini API keys or credentials exist in Next.js browser bundles.
-* **Worker Encrypted Secrets**: Gemini API keys are injected via encrypted Cloudflare Worker environment secrets.
-* **Web Crypto Password Hashing**: Passwords are never stored in plaintext; hashed using PBKDF2 with SHA-256 (100,000 iterations) and 16-byte random salts.
-* **Session Security**: Session tokens are verified against D1 `sessions` with expiration timestamps.
-* **Git Cleanliness**: All secrets, local environment files, and build outputs are strictly excluded via `.gitignore`.
+## 🌐 Production Deployment
+
+### Deploy the Cloudflare Worker
+
+```bash
+cd worker
+
+# Set the Gemini API key as a Cloudflare secret (never hardcode it)
+npx wrangler secret put GEMINI_API_KEY
+
+# Apply D1 schema to production
+npx wrangler d1 execute bhoomi-mithra-db --remote --file=schema.sql
+npx wrangler d1 execute bhoomi-mithra-db --remote --file=seed.sql
+
+# Deploy the worker
+npx wrangler deploy
+```
+
+### Deploy the Frontend to Cloudflare Pages
+
+```bash
+# Build the production static export
+npm run build
+
+# Deploy to Cloudflare Pages
+npx wrangler pages deploy out --project-name bhoomi-mithra
+```
+
+---
+
+## 📡 API Reference
+
+| Method | Endpoint | Description |
+| :--- | :--- | :--- |
+| `GET` | `/api/health` | Service health check |
+| `POST` | `/api/auth/register` | Register a new farmer |
+| `POST` | `/api/auth/login` | Login and get session token |
+| `GET` | `/api/auth/me` | Get authenticated farmer profile |
+| `POST` | `/api/auth/logout` | Invalidate session |
+| `GET` | `/api/weather?location=Mandya` | Live weather (Open-Meteo) |
+| `POST` | `/api/weather/advice` | AI weather risk advisory |
+| `POST` | `/api/crops/recommend` | AI crop recommendations |
+| `POST` | `/api/ai` | General Gemini AI endpoint (diagnosis, advice) |
+| `GET` | `/api/labor/nearby` | Find nearby labor workers (geo-radius) |
+| `POST` | `/api/labor/request` | Submit a labor hiring request |
+| `GET` | `/api/marketplace` | Browse crop marketplace listings |
+| `GET` | `/api/services` | Browse agricultural services |
+| `POST` | `/api/farmers/match` | Match with peer farmers |
+
+Full API examples: [worker/API_EXAMPLES.md](worker/API_EXAMPLES.md)
+
+---
+
+## 🔒 Security Notes
+
+- **Gemini API key** is stored as a Cloudflare Worker Secret (never in source code).
+- All `.env*` files are **gitignored** — use `.env.example` as a template.
+- `worker/.dev.vars` is **gitignored** — use `worker/.dev.vars.example` as a template.
+- Passwords are hashed with **PBKDF2-SHA256** (100,000 iterations) — never stored in plain text.
+- Session tokens are stored in D1 and invalidated on logout.
+- AI endpoints are **rate-limited** at 40 requests/minute per client IP.
+- Gemini requests are **cached** in-memory (5-minute TTL) to reduce quota usage.
+
+---
+
+## 📊 Live Production Status
+
+| Service | Status | Notes |
+| :--- | :--- | :--- |
+| Frontend | ✅ LIVE | Cloudflare Pages |
+| Worker API | ✅ LIVE | Cloudflare Workers Edge |
+| D1 Database | ✅ LIVE | Farmer profiles, labor, marketplace |
+| Gemini AI | ✅ LIVE | `gemini-3.5-flash`, 600 token budget |
+| Weather | ✅ LIVE | Open-Meteo Real-time API |
+| Auth | ✅ LIVE | PBKDF2 + D1 session store |
+
+---
+
+## 🌱 Roadmap
+
+- [ ] OTP-based mobile verification (via Twilio or AWS SNS)
+- [ ] Regional market price feed integration (AGMARKNET API)
+- [ ] Satellite NDVI crop health monitoring
+- [ ] Offline-first Progressive Web App (PWA) support
+- [ ] Voice input and audio responses in Kannada and Telugu
+
+---
+
+## 🙏 Acknowledgements
+
+- [Google Gemini](https://ai.google.dev) — AI infrastructure
+- [Open-Meteo](https://open-meteo.com) — Free real-time weather API
+- [Cloudflare Workers + D1](https://workers.cloudflare.com) — Edge compute and database
+- [shadcn/ui](https://ui.shadcn.com) — Accessible React component library
+- [Three.js](https://threejs.org) — 3D farm terrain visualization
+
+---
+
+<div align="center">
+
+**Bhoomi Mithra** · ಬೆಳಕಿನ ಮನೆ · Built with ❤️ for Indian Farmers
+
+[🌐 Live Demo](https://bhoomi-mithra.pages.dev) · [⚡ API Health](https://farmconnect-ai-worker.bhoomi-mithra.workers.dev/api/health) · [📖 API Docs](worker/API_EXAMPLES.md)
+
+</div>
